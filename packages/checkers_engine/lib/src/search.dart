@@ -69,7 +69,7 @@ class Searcher {
     _clock
       ..reset()
       ..start();
-    _deadline = timeMs ?? (1 << 40);
+    _deadline = timeMs ?? 0x7fffffff; // "no limit" (safe on the web too)
 
     var done = 0;
     var best = root[0];

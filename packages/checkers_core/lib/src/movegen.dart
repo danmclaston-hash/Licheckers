@@ -223,7 +223,7 @@ class _Gen {
 
   List<Move> _applyPriority(List<Move> all) {
     int best(int Function(Move) f, List<Move> l) =>
-        l.fold(-1 << 30, (a, m) => f(m) > a ? f(m) : a);
+        l.fold(-1000000000, (a, m) => f(m) > a ? f(m) : a);
     List<Move> keep(int Function(Move) f, List<Move> l) {
       final top = best(f, l);
       return [for (final m in l) if (f(m) == top) m];

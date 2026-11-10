@@ -10,6 +10,7 @@ and the AI. It is pure Dart, so the same code will run inside the Flutter app
 | --- | --- |
 | `packages/checkers_core` | Rules for all 9 variants: start position, legal moves, capture chains, crowning, wins and draws |
 | `packages/checkers_engine` | The AI: look-ahead search, position scoring, and the 18 bots |
+| `app` | The Flutter app: animated board, play vs the 18 bots or two players, Learn pages, Settings |
 | `.github/workflows/test.yml` | Runs every test automatically on each push to GitHub |
 
 ## Run it
@@ -23,6 +24,15 @@ and the AI. It is pure Dart, so the same code will run inside the Flutter app
 Success looks like: `All tests passed!`
 If `dart` is "not found": Dart is not installed or not on your PATH; reopen
 the terminal after installing.
+
+## Run the app
+
+1. Install Flutter: https://docs.flutter.dev/get-started/install
+2. `cd app && flutter pub get`
+3. `flutter run -d chrome` (browser), or plug in an Android phone and run `flutter run`
+
+Success looks like: the Play page opens; press **Start game** and a board appears.
+If it fails with "No devices found": run `flutter doctor` and fix what it lists.
 
 ## Useful tools
 
