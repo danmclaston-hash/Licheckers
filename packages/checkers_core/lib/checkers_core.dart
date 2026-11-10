@@ -1,4 +1,4 @@
-/// Rules engine for 11 checkers variants. Pure Dart: runs in the app,
+/// Rules engine for 9 checkers variants. Pure Dart: runs in the app,
 /// on the server, and in tests.
 library;
 

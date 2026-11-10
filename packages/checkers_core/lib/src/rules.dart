@@ -21,7 +21,7 @@ const frisianAll = [
 
 /// Which capture must be chosen when there are several.
 enum Priority {
-  /// Any capture chain is fine (English, Russian, Thai, Jamaican).
+  /// Any capture chain is fine (English, Russian).
   none,
 
   /// Must take the most pieces (International, Brazilian, Canadian, Turkish).
@@ -66,8 +66,8 @@ class VariantRules {
   /// true = every square is used and moves are straight (Turkish).
   final bool allSquares;
 
-  /// true = the dark corner is on the player's right (Italian, Spanish,
-  /// Jamaican). Only changes which squares are used.
+  /// true = the dark corner is on the player's right (Italian,
+  /// Spanish). Only changes which squares are used.
   final bool mirrored;
 
   /// 0 = white moves first, 1 = black moves first.
@@ -81,7 +81,8 @@ class VariantRules {
   /// Kings slide any distance.
   final bool flyingKings;
 
-  /// A flying king must land on the square right behind the piece it took (Thai).
+  /// A flying king must land on the square right behind the piece it took.
+  /// Not used by a current variant; kept so Thai can return later.
   final bool kingLandsRightBehind;
 
   /// false = a man may not capture a king (Italian).
@@ -90,7 +91,7 @@ class VariantRules {
   final Priority priority;
 
   /// true = a captured piece leaves the board the moment it is jumped
-  /// (English, Italian, Turkish, Thai). false = all captured pieces are lifted
+  /// (English, Italian, Turkish). false = all captured pieces are lifted
   /// together after the move; until then they block the way and cannot be
   /// jumped twice (International, Russian, ...).
   final bool removeAsJumped;

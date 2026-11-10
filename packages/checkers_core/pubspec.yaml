@@ -1,5 +1,5 @@
 name: checkers_core
-description: Rules engine for 11 checkers/draughts variants. Pure Dart, no Flutter.
+description: Rules engine for 9 checkers/draughts variants. Pure Dart, no Flutter.
 version: 0.1.0
 publish_to: none
 environment:

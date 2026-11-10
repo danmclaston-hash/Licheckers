@@ -18,9 +18,7 @@ void main() {
     'italian': [7, 49, 302, 1469, 7361, 36473, 177532],
     'spanish': [7, 49, 302, 1469, 7361],
     'turkish': [8, 64, 708, 7538, 85090],
-    'thai': [7, 49, 392, 3136, 26592],
     'canadian': [11, 121, 1222, 10053, 79049],
-    'jamaican': [7, 49, 302, 1469, 7482],
   };
 
   void check(String label, Map<String, List<int>> table) {
