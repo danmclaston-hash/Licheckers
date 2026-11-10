@@ -25,7 +25,8 @@ class _Zobrist {
 
   static _Zobrist forSize(int n) => _cache.putIfAbsent(n, () {
         final rng = Random(n * 7919 + 13);
-        int r() => rng.nextInt(1 << 32);
+        // Written as a plain number: on the web "1 << 32" overflows.
+        int r() => rng.nextInt(4294967296);
         Uint32List row() =>
             Uint32List.fromList(List.generate(n * n, (_) => r()));
         return _Zobrist(

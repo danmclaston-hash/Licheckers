@@ -1,0 +1,75 @@
+import 'package:checkers_core/checkers_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../board_view.dart';
+import '../rules_text.dart';
+import '../settings.dart';
+import '../theme.dart';
+import 'home.dart';
+
+/// The rules of every variant, in plain words. Works offline.
+class LearnScreen extends StatelessWidget {
+  const LearnScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => PageBody(title: 'Learn', children: [
+        for (final v in Variants.all)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                title: Text(v.name,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(tagline(v)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => VariantRulesScreen(rules: v))),
+              ),
+            ),
+          ),
+      ]);
+}
+
+class VariantRulesScreen extends ConsumerWidget {
+  final VariantRules rules;
+  const VariantRulesScreen({super.key, required this.rules});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(settingsProvider);
+    final t = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(rules.name)),
+      body: PageBody(title: 'How to play', children: [
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 340),
+            child: BoardView(
+              position: Position.initial(rules),
+              theme: boardThemeById(s.boardTheme),
+              style: pieceStyleById(s.pieceStyle),
+              showCoords: s.showCoords,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        for (final (i, line) in describeRules(rules).indexed)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(
+                width: 28,
+                child: Text('${i + 1}.',
+                    style: t.textTheme.bodyMedium?.copyWith(
+                        color: t.colorScheme.primary,
+                        fontWeight: FontWeight.w700)),
+              ),
+              Expanded(child: Text(line)),
+            ]),
+          ),
+      ]),
+    );
+  }
+}
