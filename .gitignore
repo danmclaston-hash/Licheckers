@@ -1,0 +1,9 @@
+.dart_tool/
+build/
+pubspec.lock
+.env
+.env.*
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist

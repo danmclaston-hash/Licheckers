@@ -1,0 +1,11 @@
+name: checkers_engine
+description: Search engine and 18 bot personalities for all licheckers variants.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dependencies:
+  checkers_core:
+    path: ../checkers_core
+dev_dependencies:
+  test: ^1.25.0

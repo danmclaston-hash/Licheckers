@@ -1,0 +1,8 @@
+name: checkers_core
+description: Rules engine for 11 checkers/draughts variants. Pure Dart, no Flutter.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dev_dependencies:
+  test: ^1.25.0
