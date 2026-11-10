@@ -74,16 +74,6 @@ void main() {
     expect(moves.every((m) => m.captured.length == 1), isTrue);
   });
 
-  test('Thai: a king lands right behind the piece it takes', () {
-    final r = Variants.thai;
-    final p = Position.fromRows(r, [
-      '........', '........', '........', '........',
-      '........', '..b.....', '........', 'W.......',
-    ], white);
-    final moves = legalMoves(p);
-    expect(moves.single.to, sq(r, 4, 3));
-  });
-
   test('Frisian: men capture straight sideways', () {
     final r = Variants.frisian;
     final p = Position.fromRows(r, [

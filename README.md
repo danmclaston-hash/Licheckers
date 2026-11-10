@@ -1,6 +1,6 @@
 # licheckers
 
-Checkers platform for 11 variants. This first part is the brain: the rules
+Checkers platform for 9 variants. This first part is the brain: the rules
 and the AI. It is pure Dart, so the same code will run inside the Flutter app
 (offline play) and on the game server (checking every move).
 
@@ -8,7 +8,7 @@ and the AI. It is pure Dart, so the same code will run inside the Flutter app
 
 | Folder | What it does |
 | --- | --- |
-| `packages/checkers_core` | Rules for all 11 variants: start position, legal moves, capture chains, crowning, wins and draws |
+| `packages/checkers_core` | Rules for all 9 variants: start position, legal moves, capture chains, crowning, wins and draws |
 | `packages/checkers_engine` | The AI: look-ahead search, position scoring, and the 18 bots |
 | `.github/workflows/test.yml` | Runs every test automatically on each push to GitHub |
 
@@ -54,10 +54,12 @@ No other code changes. Then run the tests.
 
 ## Known gaps (do these before money tournaments)
 
-- Thai, Turkish and Jamaican each have one rule that sources disagree on.
-  The choice made is written at the top of `variants.dart`.
+- Turkish has one rule that sources do not state clearly (a man reaching
+  the last row in mid-capture). The choice made is written at the top of
+  `variants.dart`.
+- Thai and Jamaican were removed until their rules can be confirmed.
 - Special endgame draw counts (for example Frisian 2 kings v 1 king) are not
   modelled yet; only "N moves without progress" and threefold repetition are.
-- 7 variants have no outside reference counts yet; their counts are frozen
+- 5 variants have no outside reference counts yet; their counts are frozen
   from this code. Compare them with pydraughts or a federation referee.
 - The bots' ratings are not measured yet beyond a few test matches.

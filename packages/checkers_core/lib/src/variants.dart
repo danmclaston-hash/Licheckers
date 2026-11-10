@@ -1,12 +1,12 @@
 import 'rules.dart';
 
-/// The 11 variants. To add a variant, add one object here.
+/// The 9 variants. To add a variant, add one object here.
+///
+/// Thai and Jamaican were removed until their rules can be confirmed.
 ///
 /// Open questions (confirm with a national federation before money games):
-///  - Thai: some sources let men capture backward. Here: forward only.
 ///  - Turkish: a man that reaches the last row mid-capture. Here: becomes a
 ///    king at once and continues.
-///  - Jamaican: flying kings assumed (pool-checkers family).
 ///  - Special endgame draw counts (e.g. Frisian 2 kings v 1 king = 7 moves)
 ///    are not modelled yet; only the general no-progress rule is.
 abstract final class Variants {
@@ -75,15 +75,6 @@ abstract final class Variants {
     drawPlies: 80,
   );
 
-  static const thai = VariantRules(
-    id: 'thai', name: 'Thai (Mak-hos)', size: 8, menRows: 2,
-    firstMover: 1,
-    flyingKings: true,
-    kingLandsRightBehind: true,
-    removeAsJumped: true,
-    drawPlies: 80,
-  );
-
   static const frisian = VariantRules(
     id: 'frisian', name: 'Frisian', size: 10, menRows: 4,
     manCaptureDirs: frisianAll,
@@ -104,19 +95,9 @@ abstract final class Variants {
     drawPlies: 50,
   );
 
-  static const jamaican = VariantRules(
-    id: 'jamaican', name: 'Jamaican', size: 8, menRows: 3,
-    mirrored: true,
-    firstMover: 1,
-    manCaptureDirs: diagAll,
-    flyingKings: true,
-    midPromo: MidPromo.asMan,
-    drawPlies: 80,
-  );
-
   static const all = [
     english, international, brazilian, russian, italian, spanish,
-    turkish, thai, frisian, canadian, jamaican,
+    turkish, frisian, canadian,
   ];
 
   static VariantRules byId(String id) => all.firstWhere((v) => v.id == id);

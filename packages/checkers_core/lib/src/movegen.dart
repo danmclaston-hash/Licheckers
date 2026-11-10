@@ -35,7 +35,7 @@ class _Gen {
   bool inside(int row, int col) => row >= 0 && row < n && col >= 0 && col < n;
 
   List<Move> run() {
-    // 1) Captures. They are compulsory in all 11 variants.
+    // 1) Captures. They are compulsory in all variants.
     for (var sq = 0; sq < b.length; sq++) {
       final p = b[sq];
       if (p == 0 || sideOf(p) != side) continue;
