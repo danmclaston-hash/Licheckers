@@ -4,3 +4,4 @@ library;
 export 'src/eval.dart';
 export 'src/search.dart';
 export 'src/bots.dart';
+export 'src/job.dart';

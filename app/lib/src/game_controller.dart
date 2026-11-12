@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:checkers_core/checkers_core.dart';
 import 'package:checkers_engine/checkers_engine.dart';
 import 'package:flutter/foundation.dart';
+
+import 'bot_runner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What the player chose on the Play screen.
@@ -16,18 +18,6 @@ class GameSetup {
   final int humanSide;
   const GameSetup(this.rules, this.bot, this.humanSide);
 }
-
-class _BotJob {
-  final Position position;
-  final int level;
-  final List<int> history;
-  final int seed;
-  const _BotJob(this.position, this.level, this.history, this.seed);
-}
-
-/// Runs in the background (on phones and desktop) so the board stays smooth.
-Move _botJob(_BotJob j) => pickBotMove(j.position, bots[j.level - 1],
-    history: j.history, seed: j.seed);
 
 /// Holds one game on this device: taps, moves, the bot, undo, resign.
 class GameController extends ChangeNotifier {
@@ -84,6 +74,7 @@ class GameController extends ChangeNotifier {
 
   void start(GameSetup s) {
     _token++;
+    cancelBot();
     setup = s;
     game = Game(s.rules);
     selected = null;
@@ -97,6 +88,7 @@ class GameController extends ChangeNotifier {
 
   void close() {
     _token++;
+    cancelBot();
     game = null;
     setup = null;
     thinking = false;
@@ -142,10 +134,12 @@ class GameController extends ChangeNotifier {
     final steps = lastMove?.path.length ?? 0;
     final wait = max(350, steps * animMs + 120);
     final started = DateTime.now();
-    final move = await compute(
-        _botJob,
-        _BotJob(g.position, s.bot!.level, g.seenKeys.toList(),
-            _rng.nextInt(1 << 30)));
+    final Move move;
+    try {
+      move = await askBot(g, s.rules.id, s.bot!.level, _rng.nextInt(1 << 30));
+    } catch (_) {
+      return; // cancelled or failed: the game was restarted meanwhile
+    }
     final spent = DateTime.now().difference(started).inMilliseconds;
     if (spent < wait) {
       await Future<void>.delayed(Duration(milliseconds: wait - spent));
@@ -173,6 +167,7 @@ class GameController extends ChangeNotifier {
     }
     final replay = g.moves.take(keep).toList();
     _token++;
+    cancelBot();
     final fresh = Game(s.rules);
     for (final m in replay) {
       fresh.play(m);
@@ -189,6 +184,7 @@ class GameController extends ChangeNotifier {
     final g = game, s = setup;
     if (g == null || s == null || result != GameResult.ongoing) return;
     _token++;
+    cancelBot();
     thinking = false;
     _resignedSide = s.bot != null ? s.humanSide : g.position.turn;
     notifyListeners();

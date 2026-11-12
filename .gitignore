@@ -7,3 +7,5 @@ pubspec.lock
 *.jks
 google-services.json
 GoogleService-Info.plist
+app/web/bot_worker.js
+app/web/bot_worker.js.*
