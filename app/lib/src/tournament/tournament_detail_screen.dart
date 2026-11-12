@@ -22,7 +22,7 @@ class TournamentDetailScreen extends ConsumerWidget {
     final d = x.d;
     final base = Theme.of(context);
     final sponsored = d.sponsor != SponsorMode.none;
-    final skin = sponsored ? colourOf(d.colourA) : null;
+    final skin = sponsored ? d.sponsorColourA : null;
     final theme = skin == null ? base : skinTheme(base, skin);
     return Theme(
       data: theme,
@@ -61,7 +61,7 @@ class _Body extends ConsumerWidget {
     final sponsored = d.sponsor != SponsorMode.none;
     final prizes = prizeAmounts(d.poolUgx, d.percents);
     final m = moneySummary(players: x.joined, fee: d.feeUgx, pool: d.poolUgx);
-    final cA = colourOf(d.colourA), cB = colourOf(d.colourB);
+    final cA = d.sponsorColourA, cB = d.sponsorColourB;
 
     return Scaffold(
       appBar: AppBar(title: Text(d.name, overflow: TextOverflow.ellipsis)),
@@ -87,18 +87,24 @@ class _Body extends ConsumerWidget {
                 ),
               ),
             // Sponsor strip: static, above the content, never over the board.
-            if (sponsored && cA != null)
+            if (sponsored)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: half && cB != null
+                child: half
                     ? Row(children: [
-                        Expanded(child: SponsorStrip('Presented by ${d.sponsorA}', cA)),
+                        Expanded(child: SponsorStrip('Presented by ${d.sponsorA}', cA, logo: d.logoA)),
                         const SizedBox(width: 6),
-                        Expanded(child: SponsorStrip('Presented by ${d.sponsorB}', cB)),
+                        Expanded(child: SponsorStrip('Presented by ${d.sponsorB}', cB, logo: d.logoB)),
                       ])
-                    : SponsorStrip('Presented by ${d.sponsorA}', cA),
+                    : SponsorStrip('Presented by ${d.sponsorA}', cA, logo: d.logoA),
               ),
 
+            if (x.mine && d.logosWaitingForCheck)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Tag('Logo waiting for safety check: only you can see it',
+                    icon: Icons.hourglass_top, colour: Colors.orange),
+              ),
             // Countdown + join
             SectionCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

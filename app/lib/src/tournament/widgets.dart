@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:checkers_core/checkers_core.dart';
 import 'package:flutter/material.dart';
@@ -97,8 +98,10 @@ class Tag extends StatelessWidget {
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 13, color: c), const SizedBox(width: 4)],
-        Text(text,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c)),
+        Flexible(
+          child: Text(text,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c)),
+        ),
       ]),
     );
   }
@@ -158,7 +161,6 @@ class ChecksList extends StatelessWidget {
   }
 }
 
-Color? colourOf(String name) => sponsorColours[name];
 
 /// A sponsor-coloured version of the app look, only for the tournament's own
 /// screens. The board is drawn from its own theme, so it is never affected.
@@ -183,7 +185,8 @@ ThemeData skinTheme(ThemeData base, Color seed) {
 class SponsorStrip extends StatelessWidget {
   final String text;
   final Color colour;
-  const SponsorStrip(this.text, this.colour, {super.key});
+  final Uint8List? logo;
+  const SponsorStrip(this.text, this.colour, {super.key, this.logo});
 
   @override
   Widget build(BuildContext context) {
@@ -193,9 +196,23 @@ class SponsorStrip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
           color: colour, borderRadius: BorderRadius.circular(8)),
-      child: Text(text,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: ink, fontWeight: FontWeight.w700, fontSize: 13)),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        if (logo != null) ...[
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(4)),
+            child: Image.memory(logo!, height: 26, fit: BoxFit.contain),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Flexible(
+          child: Text(text,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: ink, fontWeight: FontWeight.w700, fontSize: 13)),
+        ),
+      ]),
     );
   }
 }
