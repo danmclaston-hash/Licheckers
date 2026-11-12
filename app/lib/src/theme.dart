@@ -60,6 +60,16 @@ const boardThemes = [
       Color(0xFF3F4A63), Color(0xFF262F45), Color(0xFF141A28)),
   BoardTheme('sunset', 'Sunset', Color(0xFFFBE3C4), Color(0xFFF6CFA6),
       Color(0xFFD9825B), Color(0xFFA9506A), Color(0xFF4B2338)),
+  // The four "Clear" boards are built to pass the tournament readability
+  // checks with the Flat and Classic pieces (see tournament_rules.dart).
+  BoardTheme('clear-green', 'Clear Green', Color(0xFFEEEED2), Color(0xFFE2E4C4),
+      Color(0xFF688C50), Color(0xFF64874E), Color(0xFF2F4226)),
+  BoardTheme('clear-brown', 'Clear Brown', Color(0xFFF2E3C6), Color(0xFFE8D3AC),
+      Color(0xFFA27A51), Color(0xFF9D764E), Color(0xFF4A3526)),
+  BoardTheme('clear-blue', 'Clear Blue', Color(0xFFE3ECF2), Color(0xFFD3E0EA),
+      Color(0xFF63869E), Color(0xFF608298), Color(0xFF2B3B45)),
+  BoardTheme('clear-red', 'Clear Red', Color(0xFFFBE8DD), Color(0xFFF3D3C2),
+      Color(0xFFBF6B53), Color(0xFFB96751), Color(0xFF4B2338)),
   BoardTheme('contrast', 'High contrast', Color(0xFFFFFFFF), Color(0xFFFFFFFF),
       Color(0xFF3A3A3A), Color(0xFF3A3A3A), Color(0xFF000000)),
 ];

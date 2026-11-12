@@ -32,6 +32,9 @@ class BoardView extends StatefulWidget {
   final Set<int> mustMove;
   final void Function(int square)? onTap;
 
+  /// Sponsor names written on the pieces (tournaments only). null = none.
+  final String? whiteLabel, blackLabel;
+
   const BoardView({
     super.key,
     required this.position,
@@ -47,6 +50,8 @@ class BoardView extends StatefulWidget {
     this.targets = const {},
     this.mustMove = const {},
     this.onTap,
+    this.whiteLabel,
+    this.blackLabel,
   });
 
   @override
@@ -316,8 +321,40 @@ class _BoardPainter extends CustomPainter {
               center: c + Offset(0, -r * .45), width: r * 1.1, height: r * .5),
           Paint()..color = Colors.white.withValues(alpha: .35));
     }
+    final label = isWhite ? w.whiteLabel : w.blackLabel;
+    if (label != null && label.trim().isNotEmpty) {
+      _label(canvas, c, r, label.trim().toUpperCase(), a, b, isKing(piece));
+    }
     if (isKing(piece)) _crown(canvas, c, r * .52, s.crown);
     if (opacity < 1) canvas.restore();
+  }
+
+  /// A short sponsor name on the coin. On a king it sits low, under the crown.
+  void _label(Canvas canvas, Offset c, double r, String text, Color a, Color b,
+      bool king) {
+    final fill = Color.lerp(a, b, .5)!;
+    final ink = fill.computeLuminance() > .4 ? Colors.black : Colors.white;
+    var tp = TextPainter(
+      text: TextSpan(
+          text: text,
+          style: TextStyle(
+              fontSize: r * .62, fontWeight: FontWeight.w800, color: ink)),
+      textDirection: dir,
+    )..layout();
+    final maxW = r * 1.45;
+    if (tp.width > maxW) {
+      tp = TextPainter(
+        text: TextSpan(
+            text: text,
+            style: TextStyle(
+                fontSize: r * .62 * maxW / tp.width,
+                fontWeight: FontWeight.w800,
+                color: ink)),
+        textDirection: dir,
+      )..layout();
+    }
+    final at = c + Offset(0, king ? r * .5 : 0);
+    tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
   }
 
   void _crown(Canvas canvas, Offset c, double h, Color color) {
