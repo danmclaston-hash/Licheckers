@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Licheckers logo">
+  <defs>
+    <clipPath id="board"><rect x="96" y="96" width="320" height="320" rx="28"/></clipPath>
+    <radialGradient id="red" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ff6b5e"/>
+      <stop offset="1" stop-color="#b3261e"/>
+    </radialGradient>
+    <radialGradient id="cream" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9d2c3"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- app background -->
+  <rect width="512" height="512" rx="112" fill="#1f2430"/>
+
+  <!-- board: 4x4 -->
+  <g clip-path="url(#board)">
+    <rect x="96" y="96" width="320" height="320" fill="#f0d9b5"/>
+    <g fill="#b58863">
+      <rect x="176" y="96" width="80" height="80"/><rect x="336" y="96" width="80" height="80"/>
+      <rect x="96" y="176" width="80" height="80"/><rect x="256" y="176" width="80" height="80"/>
+      <rect x="176" y="256" width="80" height="80"/><rect x="336" y="256" width="80" height="80"/>
+      <rect x="96" y="336" width="80" height="80"/><rect x="256" y="336" width="80" height="80"/>
+    </g>
+  </g>
+
+  <!-- cream piece -->
+  <g filter="url(#shadow)">
+    <circle cx="296" cy="216" r="31" fill="url(#cream)"/>
+    <circle cx="296" cy="216" r="21" fill="none" stroke="#b9b09c" stroke-width="3"/>
+  </g>
+
+  <!-- red king -->
+  <g filter="url(#shadow)">
+    <circle cx="216" cy="296" r="31" fill="url(#red)"/>
+    <circle cx="216" cy="296" r="21" fill="none" stroke="#7d1510" stroke-width="3"/>
+    <!-- crown -->
+    <path d="M200 304 L200 286 L208 294 L216 282 L224 294 L232 286 L232 304 Z" fill="#ffd34d" stroke="#a97c00" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+</svg>
