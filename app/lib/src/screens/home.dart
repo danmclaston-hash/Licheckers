@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tournament/tournaments_screen.dart';
 import 'learn_screen.dart';
 import 'play_setup.dart';
 import 'settings_screen.dart';
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _items = [
     (Icons.sports_esports_outlined, Icons.sports_esports, 'Play'),
+    (Icons.emoji_events_outlined, Icons.emoji_events, 'Tournaments'),
     (Icons.school_outlined, Icons.school, 'Learn'),
     (Icons.settings_outlined, Icons.settings, 'Settings'),
   ];
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final wide = MediaQuery.sizeOf(context).width >= 800;
     final page = IndexedStack(index: _tab, children: const [
       PlaySetupScreen(),
+      TournamentsScreen(),
       LearnScreen(),
       SettingsScreen(),
     ]);
