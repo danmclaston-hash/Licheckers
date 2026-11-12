@@ -3,6 +3,7 @@ import 'package:checkers_engine/checkers_engine.dart';
 import 'package:test/test.dart';
 
 void main() {
+  jobRoundTrip();
   test('takes two pieces instead of one when it has the choice (English)', () {
     final p = Position.fromRows(Variants.english, [
       '.b......', '........', '.....b..', '........',
@@ -51,6 +52,22 @@ void main() {
     for (var i = 1; i < bots.length; i++) {
       expect(bots[i].depth, greaterThanOrEqualTo(bots[i - 1].depth));
       expect(bots[i].mistakeRate, lessThanOrEqualTo(bots[i - 1].mistakeRate));
+    }
+  });
+}
+
+void jobRoundTrip() {
+  test('worker job: replay + answer matches a direct call', () {
+    for (final v in Variants.all) {
+      final g = Game(v);
+      for (var i = 0; i < 6 && g.legal.isNotEmpty; i++) {
+        g.play(g.legal[i % g.legal.length]);
+      }
+      final text = runBotJob(encodeBotJob(g, v.id, 4, 7));
+      final m = decodeBotMove(g, text);
+      final direct =
+          pickBotMove(g.position, bots[3], history: g.seenKeys.toList(), seed: 7);
+      expect(m.sameAs(direct), isTrue, reason: v.id);
     }
   });
 }

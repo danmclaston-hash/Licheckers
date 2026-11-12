@@ -20,6 +20,11 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Build the bot's background worker (keeps the page smooth)
+        working-directory: packages/checkers_engine
+        run: |
+          dart pub get
+          dart compile js -O2 -o ../../app/web/bot_worker.js bin/bot_worker.dart
       - working-directory: app
         run: |
           flutter pub get
