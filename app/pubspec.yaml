@@ -41,6 +41,8 @@ dependencies:
     path: ../packages/checkers_core
   checkers_engine:
     path: ../packages/checkers_engine
+  file_picker: ^13.3.3
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

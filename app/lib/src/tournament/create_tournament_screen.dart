@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:checkers_core/checkers_core.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../info_tip.dart';
 import '../screens/home.dart';
 import '../theme.dart';
+import 'sponsor_logo.dart';
 import 'tournament_detail_screen.dart';
 import 'tournament_rules.dart';
 import 'tournament_store.dart';
@@ -88,6 +90,147 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
         DateTime(day.year, day.month, day.day, time.hour, time.minute));
   }
 
+  bool _busy = false;
+
+  /// Stores a checked logo and makes its main colour the sponsor colour.
+  Future<void> _useLogo(bool first, Uint8List bytes) async {
+    final colour = await logoColour(bytes); // also proves it is a picture
+    setState(() {
+      if (first) {
+        d.logoA = bytes;
+        d.logoColourA = colour;
+        d.colourA = 'Logo';
+      } else {
+        d.logoB = bytes;
+        d.logoColourB = colour;
+        d.colourB = 'Logo';
+      }
+    });
+  }
+
+  Future<void> _run(Future<void> Function() job) async {
+    setState(() => _busy = true);
+    try {
+      await job();
+    } on LogoError catch (e) {
+      _say(e.message);
+    } catch (e) {
+      _say('Something went wrong: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _say(String m) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(m), duration: const Duration(seconds: 6)));
+  }
+
+  Future<void> _upload(bool first) => _run(() async {
+        final f = await FilePicker.pickFile(type: FileType.image);
+        if (f == null) return;
+        final bytes = await f.xFile.readAsBytes();
+        final err = logoFileProblem(f.name, bytes.length);
+        if (err != null) throw LogoError(err);
+        await _useLogo(first, bytes);
+      });
+
+  Future<void> _fromLink(bool first) async {
+    final c = TextEditingController();
+    final link = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add a picture from a link'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(
+            controller: c,
+            autofocus: true,
+            keyboardType: TextInputType.url,
+            decoration: const InputDecoration(
+                hintText: 'https://example.com/logo.png',
+                border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+              'Paste the address of the picture itself (it usually ends in .png or .jpg). '
+              'Some websites block other apps from using their pictures. If that happens, '
+              'download the picture and use Upload instead.',
+              style: TextStyle(fontSize: 12)),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Add')),
+        ],
+      ),
+    );
+    c.dispose();
+    if (link == null || link.trim().isEmpty) return;
+    await _run(() async => _useLogo(first, await fetchLogo(link)));
+  }
+
+  void _removeLogo(bool first) => setState(() {
+        if (first) {
+          d.logoA = null;
+          d.logoColourA = null;
+          if (d.colourA == 'Logo') d.colourA = 'Blue';
+        } else {
+          d.logoB = null;
+          d.logoColourB = null;
+          if (d.colourB == 'Logo') d.colourB = 'Red';
+        }
+      });
+
+  Widget _logoRow(ThemeData t, bool first) {
+    final logo = first ? d.logoA : d.logoB;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: t.dividerColor),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: logo == null
+                ? const Icon(Icons.image_outlined, color: Colors.black38)
+                : Image.memory(logo, fit: BoxFit.contain),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Wrap(spacing: 8, runSpacing: 8, children: [
+              OutlinedButton.icon(
+                  onPressed: _busy ? null : () => _upload(first),
+                  icon: const Icon(Icons.upload, size: 18),
+                  label: const Text('Upload')),
+              OutlinedButton.icon(
+                  onPressed: _busy ? null : () => _fromLink(first),
+                  icon: const Icon(Icons.link, size: 18),
+                  label: const Text('From a link')),
+              if (logo != null)
+                TextButton(
+                    onPressed: () => _removeLogo(first), child: const Text('Remove')),
+            ]),
+          ),
+        ]),
+        if (_busy) const LinearProgressIndicator(),
+        if (logo != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+                'The logo colour is now the tournament colour. The logo waits for a '
+                'safety check by a person: until then only you can see it.',
+                style: t.textTheme.bodySmall),
+          ),
+      ]),
+    );
+  }
+
   Future<void> _create() async {
     final pay = d.totalToPay(isDeveloper: kDeveloperAccount);
     final ok = await showDialog<bool>(
@@ -127,7 +270,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
     final pay = d.totalToPay(isDeveloper: kDeveloperAccount);
     final board = boardThemeById(d.boardId), piece = pieceStyleById(d.pieceId);
     final range = clockRanges[d.clock]!;
-    final skin = d.sponsor == SponsorMode.none ? null : colourOf(d.colourA);
+    final skin = d.sponsor == SponsorMode.none ? null : d.sponsorColourA;
 
     final form = ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -341,6 +484,16 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
                 ),
             ]),
             const SizedBox(height: 12),
+            if (d.sponsor != SponsorMode.none) ...[
+              d.sponsor == SponsorMode.half
+                  ? Row(children: [
+                      Expanded(child: SponsorStrip(d.sponsorA.isEmpty ? 'Sponsor 1' : d.sponsorA, d.sponsorColourA, logo: d.logoA)),
+                      const SizedBox(width: 6),
+                      Expanded(child: SponsorStrip(d.sponsorB.isEmpty ? 'Sponsor 2' : d.sponsorB, d.sponsorColourB, logo: d.logoB)),
+                    ])
+                  : SponsorStrip(d.sponsorA.isEmpty ? 'Sponsor' : 'Presented by ${d.sponsorA}', d.sponsorColourA, logo: d.logoA),
+              const SizedBox(height: 8),
+            ],
             Center(child: BoardPreview(d, size: 250)),
             const SizedBox(height: 10),
             ChecksList(boardChecks(board, piece)),
@@ -444,7 +597,9 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
       ),
       bottomNavigationBar: bottom,
     );
-    return skin == null ? scaffold : Theme(data: skinTheme(t, skin), child: scaffold);
+    // Always wrap in a Theme (even without a sponsor), so choosing a sponsor
+    // only changes colours and never rebuilds the page or loses the scroll.
+    return Theme(data: skin == null ? t : skinTheme(t, skin), child: scaffold);
   }
 
   Widget _num2(TextEditingController c, String label, {String? prefix}) => TextField(
@@ -537,7 +692,28 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
   }
 
   Widget _sponsor(ThemeData t) {
-    Widget colours(String current, void Function(String) pick) => Wrap(spacing: 6, children: [
+    Widget colours(String current, Color? logoColour, void Function(String) pick) =>
+        Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          if (logoColour != null)
+            Tooltip(
+              message: 'Colour from the logo',
+              child: GestureDetector(
+                onTap: () => pick('Logo'),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: logoColour,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        width: current == 'Logo' ? 3 : 1,
+                        color: current == 'Logo' ? t.colorScheme.onSurface : Colors.black26),
+                  ),
+                  child: const Icon(Icons.image, size: 14, color: Colors.white),
+                ),
+              ),
+            ),
           for (final e in sponsorColours.entries)
             GestureDetector(
               onTap: () => pick(e.key),
@@ -581,7 +757,8 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
               border: const OutlineInputBorder()),
           onChanged: (_) => _sync(),
         ),
-        colours(d.colourA, (c) => setState(() => d.colourA = c)),
+        _logoRow(t, true),
+        colours(d.colourA, d.logoColourA, (c) => setState(() => d.colourA = c)),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text('Name on ${half ? 'white ' : ''}pieces (+${ugx(piecesAddOnUgx)})'),
@@ -598,7 +775,8 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
                 labelText: 'Sponsor 2 name (black side)', border: OutlineInputBorder()),
             onChanged: (_) => _sync(),
           ),
-          colours(d.colourB, (c) => setState(() => d.colourB = c)),
+          _logoRow(t, false),
+          colours(d.colourB, d.logoColourB, (c) => setState(() => d.colourB = c)),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text('Name on black pieces (+${ugx(piecesAddOnUgx)})'),
@@ -611,8 +789,8 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
             style: const TextStyle(fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
         Text(
-            'Upload of a logo image is coming with the server. For now the sponsor is a name and a colour. '
-            'Every sponsor is checked by a person before the tournament goes live.',
+            'Logos: PNG, JPG or WebP, under 2 MB. Every logo is checked by a person '
+            '(no adult content, no fake brands) before other players can see it.',
             style: t.textTheme.bodySmall),
       ],
     ]);

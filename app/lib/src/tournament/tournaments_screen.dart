@@ -99,7 +99,7 @@ class _Card extends StatelessWidget {
     final t = Theme.of(context);
     final d = x.d;
     final sponsored = d.sponsor != SponsorMode.none;
-    final skin = sponsored ? colourOf(d.colourA) : null;
+    final skin = sponsored ? d.sponsorColourA : null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -115,7 +115,7 @@ class _Card extends StatelessWidget {
                   gradient: LinearGradient(colors: [
                     skin,
                     d.sponsor == SponsorMode.half
-                        ? (colourOf(d.colourB) ?? skin)
+                        ? d.sponsorColourB
                         : skin,
                   ]),
                 ),
@@ -124,6 +124,17 @@ class _Card extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
+                  if (sponsored && d.logoA != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(2),
+                        child: Image.memory(d.logoA!, width: 32, height: 32, fit: BoxFit.contain),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
                     child: Text(d.name,
                         style: t.textTheme.titleMedium

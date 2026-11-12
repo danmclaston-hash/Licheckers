@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 
@@ -209,7 +210,20 @@ class TournamentDraft {
   String pieceId = 'flat';
   SponsorMode sponsor = SponsorMode.none;
   String sponsorA = '', sponsorB = '';
-  String colourA = 'Blue', colourB = 'Red';
+  String colourA = 'Blue', colourB = 'Red'; // a name in sponsorColours, or 'Logo'
+  /// Sponsor logos (pictures) and the main colour found in each.
+  Uint8List? logoA, logoB;
+  Color? logoColourA, logoColourB;
+
+  /// Until a person approves the logo, only the host can see it.
+  bool get logosWaitingForCheck => logoA != null || logoB != null;
+
+  Color get sponsorColourA => colourA == 'Logo' && logoColourA != null
+      ? logoColourA!
+      : sponsorColours[colourA] ?? sponsorColours['Blue']!;
+  Color get sponsorColourB => colourB == 'Logo' && logoColourB != null
+      ? logoColourB!
+      : sponsorColours[colourB] ?? sponsorColours['Red']!;
   bool piecesA = false, piecesB = false;
   bool voiceAllowed = true;
   int spectatorDelaySec = 20;
