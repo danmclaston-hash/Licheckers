@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../i18n.dart';
+import '../install/install_banner.dart';
+import '../layout.dart';
 import '../tournament/tournaments_screen.dart';
 import 'learn_screen.dart';
 import 'play_setup.dart';
@@ -17,16 +20,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
 
-  static const _items = [
-    (Icons.sports_esports_outlined, Icons.sports_esports, 'Play'),
-    (Icons.emoji_events_outlined, Icons.emoji_events, 'Tournaments'),
-    (Icons.school_outlined, Icons.school, 'Learn'),
-    (Icons.settings_outlined, Icons.settings, 'Settings'),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 800;
+    final l = context.l;
+    final items = [
+      (Icons.sports_esports_outlined, Icons.sports_esports, l.navPlay),
+      (Icons.emoji_events_outlined, Icons.emoji_events, l.navTournaments),
+      (Icons.school_outlined, Icons.school, l.navLearn),
+      (Icons.settings_outlined, Icons.settings, l.navSettings),
+    ];
+    final wide = MediaQuery.sizeOf(context).width >= kWideBreakpoint;
     final page = IndexedStack(index: _tab, children: const [
       PlaySetupScreen(),
       TournamentsScreen(),
@@ -36,7 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
     if (wide) {
       return Scaffold(
-        body: Row(children: [
+        body: Column(children: [
+          const InstallBanner(),
+          Expanded(child: Row(children: [
           NavigationRail(
             backgroundColor: scheme.surfaceContainer,
             selectedIndex: _tab,
@@ -44,25 +49,35 @@ class _HomeScreenState extends State<HomeScreen> {
             labelType: NavigationRailLabelType.all,
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Icon(Icons.blur_circular, color: scheme.primary, size: 32),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: const Image(
+                    image: AssetImage('assets/icon-64.png'), width: 40, height: 40),
+              ),
             ),
             destinations: [
-              for (final (icon, sel, label) in _items)
+              for (final (icon, sel, label) in items)
                 NavigationRailDestination(
                     icon: Icon(icon), selectedIcon: Icon(sel), label: Text(label)),
             ],
           ),
           Expanded(child: page),
+          ])),
         ]),
       );
     }
     return Scaffold(
-      body: SafeArea(child: page),
+      body: SafeArea(
+        child: Column(children: [
+          const InstallBanner(),
+          Expanded(child: page),
+        ]),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: [
-          for (final (icon, sel, label) in _items)
+          for (final (icon, sel, label) in items)
             NavigationDestination(
                 icon: Icon(icon), selectedIcon: Icon(sel), label: label),
         ],

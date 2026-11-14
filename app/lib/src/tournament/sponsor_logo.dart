@@ -13,26 +13,25 @@ import 'package:http/http.dart' as http;
 const maxLogoBytes = 2 * 1024 * 1024; // 2 MB
 const _okExt = {'png', 'jpg', 'jpeg', 'webp'};
 
+/// Why a logo was refused. A code, so the screen can say it in any language.
+enum LogoIssue { svg, type, big, empty, https, link, http, webpage, notPicture }
+
 class LogoError implements Exception {
-  final String message;
-  const LogoError(this.message);
+  final LogoIssue issue;
+  final int httpCode;
+  const LogoError(this.issue, [this.httpCode = 0]);
   @override
-  String toString() => message;
+  String toString() => 'LogoError($issue)';
 }
 
-/// null = fine, otherwise a plain reason.
-String? logoFileProblem(String name, int size) {
+/// null = fine, otherwise why the file is refused.
+LogoIssue? logoFileProblem(String name, int size) {
   final dot = name.lastIndexOf('.');
   final ext = dot < 0 ? '' : name.substring(dot + 1).toLowerCase();
-  if (ext == 'svg') {
-    return 'SVG files will be accepted once the server can convert them safely. '
-        'For now please use PNG or JPG.';
-  }
-  if (ext.isNotEmpty && !_okExt.contains(ext)) {
-    return 'Please use a PNG, JPG or WebP picture.';
-  }
-  if (size > maxLogoBytes) return 'The picture is too big. Keep it under 2 MB.';
-  if (size == 0) return 'The file is empty.';
+  if (ext == 'svg') return LogoIssue.svg;
+  if (ext.isNotEmpty && !_okExt.contains(ext)) return LogoIssue.type;
+  if (size > maxLogoBytes) return LogoIssue.big;
+  if (size == 0) return LogoIssue.empty;
   return null;
 }
 
@@ -40,24 +39,21 @@ String? logoFileProblem(String name, int size) {
 Future<Uint8List> fetchLogo(String link) async {
   final uri = Uri.tryParse(link.trim());
   if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
-    throw const LogoError('Use a full link that starts with https://');
+    throw const LogoError(LogoIssue.https);
   }
   http.Response r;
   try {
     r = await http.get(uri).timeout(const Duration(seconds: 15));
   } catch (_) {
-    throw const LogoError(
-        'Could not load that link. Some websites block other apps from using '
-        'their pictures. Download the picture and use Upload instead.');
+    throw const LogoError(LogoIssue.link);
   }
   if (r.statusCode != 200) {
-    throw LogoError('The website answered with an error (${r.statusCode}).');
+    throw LogoError(LogoIssue.http, r.statusCode);
   }
   final type = r.headers['content-type'] ?? '';
-  if (type.contains('svg')) throw LogoError(logoFileProblem('x.svg', 1)!);
+  if (type.contains('svg')) throw const LogoError(LogoIssue.svg);
   if (type.isNotEmpty && !type.startsWith('image/')) {
-    throw const LogoError('That link is a web page, not a picture. '
-        'Open the picture itself and copy its address.');
+    throw const LogoError(LogoIssue.webpage);
   }
   final err = logoFileProblem(uri.path, r.bodyBytes.length);
   if (err != null) throw LogoError(err);
@@ -72,11 +68,11 @@ Future<Color> logoColour(Uint8List bytes) async {
     final codec = await ui.instantiateImageCodec(bytes, targetWidth: 48);
     img = (await codec.getNextFrame()).image;
   } catch (_) {
-    throw const LogoError('This file is not a picture we can read.');
+    throw const LogoError(LogoIssue.notPicture);
   }
   final data = await img.toByteData(format: ui.ImageByteFormat.rawRgba);
   img.dispose();
-  if (data == null) throw const LogoError('This file is not a picture we can read.');
+  if (data == null) throw const LogoError(LogoIssue.notPicture);
   return dominantFromRgba(data.buffer.asUint8List()) ?? const Color(0xFF1976D2);
 }
 

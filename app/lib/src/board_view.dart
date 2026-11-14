@@ -90,7 +90,10 @@ class _BoardViewState extends State<BoardView>
   Widget build(BuildContext context) {
     final n = widget.position.size;
     final scheme = Theme.of(context).colorScheme;
-    return AspectRatio(
+    // The board never mirrors, even in right-to-left languages like Arabic.
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: AspectRatio(
       aspectRatio: 1,
       child: LayoutBuilder(builder: (context, box) {
         final side = box.biggest.shortestSide;
@@ -121,6 +124,7 @@ class _BoardViewState extends State<BoardView>
           ),
         );
       }),
+      ),
     );
   }
 }
@@ -188,7 +192,8 @@ class _BoardPainter extends CustomPainter {
     }
 
     // --- Square names.
-    if (w.showCoords) {
+    // Too small to read on tiny boards (under 30 px squares): skip them.
+    if (w.showCoords && cell >= 30) {
       final onDark = _contrast(rules.allSquares ? t.lightA : t.darkA);
       for (var sq = 0; sq < n * n; sq++) {
         if (!rules.playable(sq ~/ n, sq % n)) continue;
@@ -196,9 +201,9 @@ class _BoardPainter extends CustomPainter {
           text: TextSpan(
             text: squareName(rules, sq),
             style: TextStyle(
-                fontSize: cell * .17,
-                fontWeight: FontWeight.w600,
-                color: onDark.withValues(alpha: .6)),
+                fontSize: max(10, cell * .2),
+                fontWeight: FontWeight.w700,
+                color: onDark.withValues(alpha: .85)),
           ),
           textDirection: dir,
         )..layout();

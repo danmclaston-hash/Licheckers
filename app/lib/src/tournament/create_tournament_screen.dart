@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../i18n.dart';
 import '../info_tip.dart';
 import '../screens/home.dart';
 import '../theme.dart';
@@ -109,13 +110,14 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
   }
 
   Future<void> _run(Future<void> Function() job) async {
+    final l = context.l; // read before waiting: the page may change after
     setState(() => _busy = true);
     try {
       await job();
     } on LogoError catch (e) {
-      _say(e.message);
+      _say(logoErrorText(l, e));
     } catch (e) {
-      _say('Something went wrong: $e');
+      _say(l.somethingWrong('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -138,10 +140,11 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
 
   Future<void> _fromLink(bool first) async {
     final c = TextEditingController();
+    final l = context.l;
     final link = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add a picture from a link'),
+        title: Text(l.linkTitle),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(
             controller: c,
@@ -152,16 +155,12 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
                 border: OutlineInputBorder()),
           ),
           const SizedBox(height: 8),
-          const Text(
-              'Paste the address of the picture itself (it usually ends in .png or .jpg). '
-              'Some websites block other apps from using their pictures. If that happens, '
-              'download the picture and use Upload instead.',
-              style: TextStyle(fontSize: 12)),
+          Text(l.linkHelp, style: const TextStyle(fontSize: 12)),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.cancel)),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Add')),
+              onPressed: () => Navigator.pop(ctx, c.text), child: Text(l.add)),
         ],
       ),
     );
@@ -183,6 +182,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
       });
 
   Widget _logoRow(ThemeData t, bool first) {
+    final l = context.l;
     final logo = first ? d.logoA : d.logoB;
     return Padding(
       padding: const EdgeInsets.only(top: 4, bottom: 4),
@@ -207,14 +207,14 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
               OutlinedButton.icon(
                   onPressed: _busy ? null : () => _upload(first),
                   icon: const Icon(Icons.upload, size: 18),
-                  label: const Text('Upload')),
+                  label: Text(l.upload)),
               OutlinedButton.icon(
                   onPressed: _busy ? null : () => _fromLink(first),
                   icon: const Icon(Icons.link, size: 18),
-                  label: const Text('From a link')),
+                  label: Text(l.fromLink)),
               if (logo != null)
                 TextButton(
-                    onPressed: () => _removeLogo(first), child: const Text('Remove')),
+                    onPressed: () => _removeLogo(first), child: Text(l.remove)),
             ]),
           ),
         ]),
@@ -223,8 +223,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-                'The logo colour is now the tournament colour. The logo waits for a '
-                'safety check by a person: until then only you can see it.',
+                l.logoAdded,
                 style: t.textTheme.bodySmall),
           ),
       ]),
@@ -233,23 +232,21 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
 
   Future<void> _create() async {
     final pay = d.totalToPay(isDeveloper: kDeveloperAccount);
+    final l = context.l;
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Lock the prize pool and create?'),
+        title: Text(l.confirmTitle),
         content: Text(
-          'You pay ${ugx(pay)} now:\n'
-          '  Prize pool (locked): ${ugx(d.poolUgx)}\n'
-          '  Creation fee: ${kDeveloperAccount ? 'free' : ugx(creationFeeUgx)}\n'
-          '${d.sponsorFee > 0 ? '  Sponsor look: ${ugx(d.sponsorFee)}\n' : ''}'
-          '\nIf the tournament is cancelled before it starts, every player '
-          'gets their entry fee back and your prize pool returns to you. '
-          'Once it starts, the prize pool stays locked until the winners are paid.\n\n'
-          'Demo: no real money moves yet.',
+          '${l.confirmPay(ugx(pay))}\n'
+          '  ${l.confirmPool(ugx(d.poolUgx))}\n'
+          '  ${l.confirmFee(kDeveloperAccount ? l.free : ugx(creationFeeUgx))}\n'
+          '${d.sponsorFee > 0 ? '  ${l.confirmSponsor(ugx(d.sponsorFee))}\n' : ''}'
+          '\n${l.confirmRules}\n\n${l.demoNoMoney}',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Back')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Create')),
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l.back)),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l.create)),
         ],
       ),
     );
@@ -257,7 +254,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final r = Random();
     final id = List.generate(5, (_) => chars[r.nextInt(chars.length)]).join();
-    final t = Tournament(id, d, 'You', mine: true);
+    final t = Tournament(id, d, l.you, mine: true);
     ref.read(tournamentsProvider.notifier).add(t);
     Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
         builder: (_) => TournamentDetailScreen(id: id, justCreated: true)));
@@ -266,7 +263,8 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final problems = d.problems();
+    final l = context.l;
+    final problems = [for (final p in d.problems()) problemText(l, p, d)];
     final pay = d.totalToPay(isDeveloper: kDeveloperAccount);
     final board = boardThemeById(d.boardId), piece = pieceStyleById(d.pieceId);
     final range = clockRanges[d.clock]!;
@@ -276,20 +274,20 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       children: [
         // ---- 1. About
-        SectionCard(title: '1. About', child: Column(children: [
+        SectionCard(title: l.secAbout, child: Column(children: [
           TextField(
             controller: _name,
             maxLength: 40,
-            decoration: const InputDecoration(
-                labelText: 'Tournament name', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+                labelText: l.tournamentName, border: const OutlineInputBorder()),
             onChanged: (_) => _sync(),
           ),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Wrap(spacing: 8, runSpacing: 8, children: [
               for (final v in Variants.all)
                 ChoiceChip(
-                  label: Text(v.name),
+                  label: Text(variantName(l, v.id)),
                   selected: v.id == d.variantId,
                   onSelected: (_) => setState(() => d.variantId = v.id),
                 ),
@@ -299,44 +297,36 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
 
         // ---- 2. Format
         SectionCard(
-          title: '2. Format',
+          title: l.secFormat,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
+            Wrap(spacing: 12, runSpacing: 4, children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
               ChoiceChip(
-                label: const Text('Arena'),
+                label: Text(l.arena),
                 selected: d.format == TFormat.arena,
                 onSelected: (_) => setState(() => d.format = TFormat.arena),
               ),
-              const InfoTip(
-                title: 'Arena',
-                text: 'Join any time before the end. Play as many games as you can. '
-                    'A win is 3 points, a draw 1, a loss 0. Most points when the clock ends wins.\n\n'
-                    'Best for big crowds, because people can arrive late.',
-              ),
-              const SizedBox(width: 12),
+              InfoTip(title: l.arena, text: l.arenaInfo),
+              ]),
+              Row(mainAxisSize: MainAxisSize.min, children: [
               ChoiceChip(
-                label: const Text('Swiss'),
+                label: Text(l.swiss),
                 selected: d.format == TFormat.swiss,
                 onSelected: (_) => setState(() {
                   d.format = TFormat.swiss;
                   d.rounds = max(3, min(d.rounds, d.maxRounds));
                 }),
               ),
-              const InfoTip(
-                title: 'Swiss',
-                text: 'A fixed number of rounds. Each round you are matched with someone '
-                    'who has a similar score. Everyone plays every round. Most points after the last round wins.\n\n'
-                    'Best for smaller, serious events (up to about 200 players). '
-                    'You can only join before round 1 starts.',
-              ),
+              InfoTip(title: l.swiss, text: l.swissInfo),
+              ]),
             ]),
             if (d.format == TFormat.swiss) ...[
               const SizedBox(height: 8),
               if (d.maxRounds < 3)
-                Text('Not enough time for 3 rounds. Make the tournament longer or the clock faster.',
+                Text(l.notEnoughRounds,
                     style: TextStyle(color: t.colorScheme.error))
               else ...[
-                Text('Rounds: ${min(d.rounds, d.maxRounds)} (up to ${d.maxRounds} fit)'),
+                Text(l.roundsFit(min(d.rounds, d.maxRounds), d.maxRounds)),
                 Slider(
                   min: 3,
                   max: d.maxRounds.toDouble().clamp(4, 40),
@@ -351,23 +341,19 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
 
         // ---- 3. Clock
         SectionCard(
-          title: '3. Clock',
-          trailing: const InfoTip(
-            title: 'Clock',
-            text: 'Every tournament game has a clock, so a slow player cannot stall the whole event. '
-                'The second number is extra seconds added after every move.',
-          ),
+          title: l.secClock,
+          trailing: InfoTip(title: l.clockTitle, text: l.clockInfo),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Wrap(spacing: 8, children: [
               for (final c in ClockType.values)
                 ChoiceChip(
-                  label: Text(clockRanges[c]!.name),
+                  label: Text(clockName(l, c)),
                   selected: d.clock == c,
                   onSelected: (_) => _setClock(c),
                 ),
             ]),
             const SizedBox(height: 8),
-            Text('Minutes per player: ${d.baseMin}'),
+            Text(l.minutesPerPlayer(d.baseMin)),
             Slider(
               min: range.minBase.toDouble(),
               max: range.maxBase.toDouble(),
@@ -375,7 +361,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
               value: d.baseMin.clamp(range.minBase, range.maxBase).toDouble(),
               onChanged: (v) => setState(() => d.baseMin = v.round()),
             ),
-            Text('Seconds added after each move: ${d.incSec}'),
+            Text(l.secondsAdded(d.incSec)),
             Slider(
               min: range.minInc.toDouble(),
               max: range.maxInc.toDouble(),
@@ -383,44 +369,38 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
               value: d.incSec.clamp(range.minInc, range.maxInc).toDouble(),
               onChanged: (v) => setState(() => d.incSec = v.round()),
             ),
-            Text('${clockText(d)}. A long game lasts about '
-                '${gameMinutes(d.baseMin, d.incSec).round()} minutes.',
+            Text(l.longGame(clockText(l, d), gameMinutes(d.baseMin, d.incSec).round()),
                 style: t.textTheme.bodySmall),
           ]),
         ),
 
         // ---- 4. When
         SectionCard(
-          title: '4. When',
-          trailing: const InfoTip(
-            title: 'Start and length',
-            text: 'Tournaments are short on purpose: 30 minutes to 4 hours. '
-                'Players see a live countdown to the start, then to the end. '
-                'No new games are paired in the last minutes; games already running may finish.',
-          ),
+          title: l.secWhen,
+          trailing: InfoTip(title: l.whenTitle, text: l.whenInfo),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Wrap(spacing: 8, runSpacing: 8, children: [
               ActionChip(
-                  label: const Text('In 1 hour'),
+                  label: Text(l.in1h),
                   onPressed: () => setState(() =>
                       d.start = DateTime.now().add(const Duration(hours: 1)))),
               ActionChip(
-                  label: const Text('In 3 hours'),
+                  label: Text(l.in3h),
                   onPressed: () => setState(() =>
                       d.start = DateTime.now().add(const Duration(hours: 3)))),
               ActionChip(
-                  label: const Text('In 8 hours'),
+                  label: Text(l.in8h),
                   onPressed: () => setState(() =>
                       d.start = DateTime.now().add(const Duration(hours: 8)))),
               ActionChip(
                   avatar: const Icon(Icons.edit_calendar, size: 16),
-                  label: const Text('Pick date and time'),
+                  label: Text(l.pickDateTime),
                   onPressed: _pickStart),
             ]),
             const SizedBox(height: 8),
-            Text('Starts: ${dayTime(d.start)}',
+            Text(l.startsAt(dayTime(context, d.start)),
                 style: const TextStyle(fontWeight: FontWeight.w600)),
-            Text('Length: ${hoursText(d.durationMin)}'),
+            Text(l.lengthIs(duration(l, d.durationMin))),
             Slider(
               min: minDurationMin.toDouble(),
               max: maxDurationMin.toDouble(),
@@ -433,43 +413,30 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
                 }
               }),
             ),
-            Text('Ends: ${dayTime(d.end)}',
+            Text(l.endsAt(dayTime(context, d.end)),
                 style: const TextStyle(fontWeight: FontWeight.w600)),
             if (d.format == TFormat.swiss)
-              Text('About ${d.maxRounds} rounds fit in ${hoursText(d.durationMin)}.',
+              Text(l.roundsFitIn(d.maxRounds, duration(l, d.durationMin)),
                   style: t.textTheme.bodySmall),
           ]),
         ),
 
         // ---- 5. Players and money
         SectionCard(
-          title: '5. Players and money',
-          trailing: const InfoTip(
-            title: 'How the money works',
-            text: 'You lock the whole prize pool when you create the tournament. '
-                'Players pay the entry fee to join. Winners are paid from your locked prize pool. '
-                'The entry fees are yours. The platform takes $platformCutPercent% of your profit only '
-                '(entry fees minus prize pool). If the entries do not cover the pool, the platform takes nothing.\n\n'
-                'If the tournament is cancelled before it starts, everyone is refunded. '
-                'Once it starts, the money is locked.',
-          ),
+          title: l.secMoney,
+          trailing: InfoTip(title: l.moneyTitle, text: l.moneyInfo(platformCutPercent)),
           child: _money(t),
         ),
 
         // ---- 6. Board and pieces
         SectionCard(
-          title: '6. Board and pieces',
-          trailing: const InfoTip(
-            title: 'Why only these?',
-            text: 'Everyone in the tournament plays on the same board, so players can always see '
-                'the squares and pieces clearly. Only boards and pieces that pass our '
-                'readability tests are offered. Sponsors can never change the board.',
-          ),
+          title: l.secBoard,
+          trailing: InfoTip(title: l.whyOnlyThese, text: l.whyOnlyTheseInfo),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final b in boardThemes.where((b) => b.id.startsWith('clear-')))
                 ChoiceChip(
-                  label: Text(b.name),
+                  label: Text(boardName(l, b.id)),
                   selected: d.boardId == b.id,
                   onSelected: (_) => setState(() => d.boardId = b.id),
                 ),
@@ -478,7 +445,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
             Wrap(spacing: 8, children: [
               for (final p in pieceStyles.where((p) => p.id == 'flat' || p.id == 'classic'))
                 ChoiceChip(
-                  label: Text('${p.name} pieces'),
+                  label: Text(l.piecesNamed(pieceName(l, p.id))),
                   selected: d.pieceId == p.id,
                   onSelected: (_) => setState(() => d.pieceId = p.id),
                 ),
@@ -487,11 +454,11 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
             if (d.sponsor != SponsorMode.none) ...[
               d.sponsor == SponsorMode.half
                   ? Row(children: [
-                      Expanded(child: SponsorStrip(d.sponsorA.isEmpty ? 'Sponsor 1' : d.sponsorA, d.sponsorColourA, logo: d.logoA)),
+                      Expanded(child: SponsorStrip(d.sponsorA.isEmpty ? l.sponsor1 : d.sponsorA, d.sponsorColourA, logo: d.logoA)),
                       const SizedBox(width: 6),
-                      Expanded(child: SponsorStrip(d.sponsorB.isEmpty ? 'Sponsor 2' : d.sponsorB, d.sponsorColourB, logo: d.logoB)),
+                      Expanded(child: SponsorStrip(d.sponsorB.isEmpty ? l.sponsor2 : d.sponsorB, d.sponsorColourB, logo: d.logoB)),
                     ])
-                  : SponsorStrip(d.sponsorA.isEmpty ? 'Sponsor' : 'Presented by ${d.sponsorA}', d.sponsorColourA, logo: d.logoA),
+                  : SponsorStrip(d.sponsorA.isEmpty ? l.sponsor : l.presentedBy(d.sponsorA), d.sponsorColourA, logo: d.logoA),
               const SizedBox(height: 8),
             ],
             Center(child: BoardPreview(d, size: 250)),
@@ -502,43 +469,32 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
 
         // ---- 7. Sponsor
         SectionCard(
-          title: '7. Sponsor (optional)',
-          trailing: const InfoTip(
-            title: 'Sponsored tournaments',
-            text: 'A sponsor changes the look of the app for this tournament only: colours and a '
-                'name strip, and optionally their name on the pieces. '
-                'The board squares never change. There are never pop-ups, videos or sounds, '
-                'and nothing ever covers the board or the clocks. '
-                'When a player leaves the tournament, the app looks normal again.\n\n'
-                'Price: ${'UGX 15,000'} per sponsor, plus UGX 3,000 per sponsor to put their name on the pieces. '
-                'Artwork is checked first, so a sponsored tournament must start at least 6 hours from now.',
-          ),
+          title: l.secSponsor,
+          trailing: InfoTip(
+              title: l.sponsoredTitle,
+              text: l.sponsoredInfo(ugx(themeFeeUgx), ugx(piecesAddOnUgx))),
           child: _sponsor(t),
         ),
 
         // ---- 8. Options
         SectionCard(
-          title: '8. Options',
+          title: l.secOptions,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Allow voice chat in games'),
-              subtitle: const Text('Players can still choose to talk or not'),
+              title: Text(l.allowVoice),
+              subtitle: Text(l.allowVoiceSub),
               value: d.voiceAllowed,
               onChanged: (v) => setState(() => d.voiceAllowed = v),
             ),
             Row(children: [
-              const Text('Live watching delay'),
-              const InfoTip(
-                title: 'Watching delay',
-                text: 'Other people can watch the top games live. In paid tournaments their view is a few '
-                    'seconds late, so nobody can pass the best move to a player.',
-              ),
+              Flexible(child: Text(l.watchDelay)),
+              InfoTip(title: l.watchDelayTitle, text: l.watchDelayInfo),
             ]),
             Wrap(spacing: 8, children: [
               for (final s in [0, 10, 20, 30])
                 ChoiceChip(
-                  label: Text(s == 0 ? 'None' : '$s s'),
+                  label: Text(s == 0 ? l.none : l.seconds(s)),
                   selected: d.spectatorDelaySec == s,
                   onSelected: (_) => setState(() => d.spectatorDelaySec = s),
                 ),
@@ -559,13 +515,13 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (problems.isNotEmpty)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
                   problems.length == 1
                       ? problems.first
-                      : '${problems.first}  (+${problems.length - 1} more)',
+                      : l.moreProblems(problems.first, problems.length - 1),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: t.colorScheme.error, fontSize: 13),
@@ -575,14 +531,21 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
           Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('You pay now', style: t.textTheme.labelSmall),
+                Text(l.youPayNow, style: t.textTheme.labelSmall),
                 Text(ugx(pay),
                     style: t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
               ]),
             ),
-            FilledButton(
-              onPressed: problems.isEmpty ? _create : null,
-              child: const Text('Lock prize pool and create'),
+            const SizedBox(width: 12),
+            // Long translations wrap onto two lines instead of spilling off.
+            Flexible(
+              flex: 2,
+              child: FilledButton(
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                onPressed: problems.isEmpty ? _create : null,
+                child: Text(l.lockAndCreate,
+                    textAlign: TextAlign.center, maxLines: 2),
+              ),
             ),
           ]),
         ]),
@@ -590,7 +553,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
     );
 
     final scaffold = Scaffold(
-      appBar: AppBar(title: const Text('Create tournament')),
+      appBar: AppBar(title: Text(l.createTitle)),
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 720), child: form),
@@ -612,6 +575,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
       );
 
   Widget _money(ThemeData t) {
+    final l = context.l;
     final lo = d.minPlayers.clamp(1, 100000), hi = max(d.maxPlayers, lo + 1);
     final players = _whatIf.clamp(lo.toDouble(), hi.toDouble());
     final m = moneySummary(players: players.round(), fee: d.feeUgx, pool: d.poolUgx);
@@ -625,47 +589,40 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
         );
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Expanded(child: _num2(_min, 'Min players')),
+        Expanded(child: _num2(_min, l.minPlayers)),
         const SizedBox(width: 12),
-        Expanded(child: _num2(_max, 'Max players')),
+        Expanded(child: _num2(_max, l.maxPlayers)),
       ]),
       const SizedBox(height: 12),
       Row(children: [
-        Expanded(child: _num2(_fee, 'Entry fee', prefix: 'UGX ')),
+        Expanded(child: _num2(_fee, l.entryFee, prefix: 'UGX ')),
         const SizedBox(width: 12),
-        Expanded(child: _num2(_pool, 'Prize pool', prefix: 'UGX ')),
+        Expanded(child: _num2(_pool, l.prizePool, prefix: 'UGX ')),
       ]),
       const SizedBox(height: 12),
       Row(children: [
-        Text('Winner split', style: t.textTheme.labelLarge),
-        const InfoTip(
-          title: 'Winner split',
-          text: 'How the prize pool is shared between the top places. '
-              'Rounding leftovers go to first place.',
-        ),
+        Flexible(child: Text(l.winnerSplit, style: t.textTheme.labelLarge)),
+        InfoTip(title: l.winnerSplit, text: l.winnerSplitInfo),
       ]),
       Wrap(spacing: 8, children: [
         for (final s in splitPresets.keys)
           ChoiceChip(
-            label: Text(s),
+            label: Text(splitName(l, s)),
             selected: d.split == s,
             onSelected: (_) => setState(() => d.split = s),
           ),
       ]),
       const SizedBox(height: 6),
       Text(
-          [for (var i = 0; i < prizes.length; i++) '${ordinal(i + 1)} ${ugx(prizes[i])}']
+          [for (var i = 0; i < prizes.length; i++) '${placeLabel(l, i + 1)} ${ugx(prizes[i])}']
               .join('  ·  '),
           style: t.textTheme.bodySmall),
       const Divider(height: 28),
       Row(children: [
         Expanded(
-            child: Text('What if this many players join?',
+            child: Text(l.whatIf,
                 style: t.textTheme.labelLarge)),
-        const InfoTip(
-          title: 'Your money, worked out',
-          text: 'Move the slider to see what you would earn. The platform cut is taken from your profit only.',
-        ),
+        InfoTip(title: l.whatIfTitle, text: l.whatIfInfo),
       ]),
       Slider(
         min: lo.toDouble(),
@@ -673,30 +630,31 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
         value: players,
         onChanged: (v) => setState(() => _whatIf = v),
       ),
-      line('Players', '${players.round()}', bold: true),
-      line('Entry fees collected', ugx(m.collected)),
-      line('Prize pool you locked', '-${ugx(d.poolUgx)}'),
-      line('Platform share ($platformCutPercent% of profit)', '-${ugx(m.platformCut)}'),
+      line(l.players, '${players.round()}', bold: true),
+      line(l.feesCollected, ugx(m.collected)),
+      line(l.poolYouLocked, '-${ugx(d.poolUgx)}'),
+      line(l.platformShare(platformCutPercent), '-${ugx(m.platformCut)}'),
       const Divider(),
-      line('You end with', ugx(m.hostResult),
+      line(l.youEndWith, ugx(m.hostResult),
           bold: true,
           colour: m.hostResult < 0 ? t.colorScheme.error : null),
       if (m.breakEvenPlayers != null)
         Padding(
           padding: const EdgeInsets.only(top: 6),
           child: Text(
-              'You break even at ${m.breakEvenPlayers} players. Below that you lose part of the pool.',
+              l.breakEven(m.breakEvenPlayers!),
               style: t.textTheme.bodySmall),
         ),
     ]);
   }
 
   Widget _sponsor(ThemeData t) {
+    final l = context.l;
     Widget colours(String current, Color? logoColour, void Function(String) pick) =>
         Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
           if (logoColour != null)
             Tooltip(
-              message: 'Colour from the logo',
+              message: l.logoColour,
               child: GestureDetector(
                 onTap: () => pick('Logo'),
                 child: Container(
@@ -735,15 +693,15 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Wrap(spacing: 8, children: [
         ChoiceChip(
-            label: const Text('No sponsor'),
+            label: Text(l.noSponsor),
             selected: d.sponsor == SponsorMode.none,
             onSelected: (_) => setState(() => d.sponsor = SponsorMode.none)),
         ChoiceChip(
-            label: const Text('One sponsor'),
+            label: Text(l.oneSponsor),
             selected: d.sponsor == SponsorMode.single,
             onSelected: (_) => setState(() => d.sponsor = SponsorMode.single)),
         ChoiceChip(
-            label: const Text('Two sponsors (half each)'),
+            label: Text(l.twoSponsors),
             selected: half,
             onSelected: (_) => setState(() => d.sponsor = SponsorMode.half)),
       ]),
@@ -753,7 +711,7 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
           controller: _sa,
           maxLength: 20,
           decoration: InputDecoration(
-              labelText: half ? 'Sponsor 1 name (white side)' : 'Sponsor name',
+              labelText: half ? l.sponsor1Name : l.sponsorName,
               border: const OutlineInputBorder()),
           onChanged: (_) => _sync(),
         ),
@@ -761,8 +719,8 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
         colours(d.colourA, d.logoColourA, (c) => setState(() => d.colourA = c)),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text('Name on ${half ? 'white ' : ''}pieces (+${ugx(piecesAddOnUgx)})'),
-          subtitle: Text('Up to $maxLabelLength letters, checked for readability'),
+          title: Text(half ? l.nameOnWhite(ugx(piecesAddOnUgx)) : l.nameOnPieces(ugx(piecesAddOnUgx))),
+          subtitle: Text(l.upToLetters(maxLabelLength)),
           value: d.piecesA,
           onChanged: (v) => setState(() => d.piecesA = v),
         ),
@@ -771,26 +729,25 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
           TextField(
             controller: _sb,
             maxLength: 20,
-            decoration: const InputDecoration(
-                labelText: 'Sponsor 2 name (black side)', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+                labelText: l.sponsor2Name, border: const OutlineInputBorder()),
             onChanged: (_) => _sync(),
           ),
           _logoRow(t, false),
           colours(d.colourB, d.logoColourB, (c) => setState(() => d.colourB = c)),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('Name on black pieces (+${ugx(piecesAddOnUgx)})'),
+            title: Text(l.nameOnBlack(ugx(piecesAddOnUgx))),
             value: d.piecesB,
             onChanged: (v) => setState(() => d.piecesB = v),
           ),
         ],
         const SizedBox(height: 8),
-        Text('Sponsor total: ${ugx(d.sponsorFee)}',
+        Text(l.sponsorTotal(ugx(d.sponsorFee)),
             style: const TextStyle(fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
         Text(
-            'Logos: PNG, JPG or WebP, under 2 MB. Every logo is checked by a person '
-            '(no adult content, no fake brands) before other players can see it.',
+            l.logoRules,
             style: t.textTheme.bodySmall),
       ],
     ]);

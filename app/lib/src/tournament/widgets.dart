@@ -5,16 +5,10 @@ import 'package:checkers_core/checkers_core.dart';
 import 'package:flutter/material.dart';
 
 import '../board_view.dart';
+import '../i18n.dart';
 import '../theme.dart';
+import 'sponsor_logo.dart';
 import 'tournament_rules.dart';
-
-/// "1h 12m 05s" style text.
-String formatLeft(Duration d) {
-  if (d.isNegative) return '0s';
-  final h = d.inHours, m = d.inMinutes % 60, s = d.inSeconds % 60;
-  if (h > 0) return '${h}h ${m.toString().padLeft(2, '0')}m';
-  return '${m}m ${s.toString().padLeft(2, '0')}s';
-}
 
 /// Live countdown: to the start, then to the end.
 /// (Uses this device's clock for now; the server's clock once online.)
@@ -46,38 +40,86 @@ class _CountdownState extends State<Countdown> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l;
     final now = DateTime.now();
     final String text;
     if (now.isBefore(widget.start)) {
-      text = 'Starts in ${formatLeft(widget.start.difference(now))}';
+      text = l.startsIn(timeLeft(l, widget.start.difference(now)));
     } else if (now.isBefore(widget.end)) {
-      text = 'Live: ends in ${formatLeft(widget.end.difference(now))}';
+      text = l.liveEndsIn(timeLeft(l, widget.end.difference(now)));
     } else {
-      text = 'Finished';
+      text = l.finished;
     }
-    return Text(text, style: widget.style);
+    return Text(text,
+        style: (widget.style ?? const TextStyle())
+            .copyWith(fontFeatures: const [FontFeature.tabularFigures()]));
   }
 }
 
-String clockText(TournamentDraft d) =>
-    '${clockLabel(d.baseMin, d.incSec)} ${clockRanges[d.clock]!.name}';
+String clockName(L l, ClockType c) => switch (c) {
+      ClockType.bullet => l.clock_bullet,
+      ClockType.blitz => l.clock_blitz,
+      ClockType.rapid => l.clock_rapid,
+      ClockType.classic => l.clock_classic,
+    };
 
-String ordinal(int n) =>
-    n == 1 ? '1st' : n == 2 ? '2nd' : n == 3 ? '3rd' : '${n}th';
+/// "3+2 Blitz"
+String clockText(L l, TournamentDraft d) =>
+    '${clockLabel(d.baseMin, d.incSec)} ${clockName(l, d.clock)}';
 
-String twoDigits(int n) => n.toString().padLeft(2, '0');
+String formatName(L l, TFormat f) => f == TFormat.arena ? l.arena : l.swiss;
 
-String dayTime(DateTime t) {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return '${days[t.weekday - 1]} ${t.day} ${months[t.month - 1]}, ${twoDigits(t.hour)}:${twoDigits(t.minute)}';
-}
+String labelIssueText(L l, LabelIssue i) => switch (i) {
+      LabelIssue.empty => l.lbl_empty(maxLabelLength),
+      LabelIssue.tooLong => l.lbl_tooLong(maxLabelLength),
+      LabelIssue.unreadable => l.lbl_unreadable,
+    };
 
-String hoursText(int minutes) {
-  final h = minutes ~/ 60, m = minutes % 60;
-  if (h == 0) return '$m min';
-  return m == 0 ? '$h h' : '$h h $m min';
-}
+String problemText(L l, Problem p, TournamentDraft d) => switch (p.code) {
+      ProblemCode.nameShort => l.p_nameShort,
+      ProblemCode.clockRange => l.p_clockRange(clockName(l, d.clock)),
+      ProblemCode.lengthRange => l.p_lengthRange,
+      ProblemCode.startSoon => l.p_startSoon,
+      ProblemCode.sponsoredStartSoon => l.p_sponsoredStartSoon,
+      ProblemCode.swissFew => l.p_swissFew(p.n),
+      ProblemCode.swissTooMany => l.p_swissTooMany(p.n),
+      ProblemCode.arenaTooSlow => l.p_arenaTooSlow,
+      ProblemCode.minPlayers => l.p_minPlayers,
+      ProblemCode.maxBelowMin => l.p_maxBelowMin,
+      ProblemCode.poolTooSmall => l.p_poolTooSmall(ugx(p.n)),
+      ProblemCode.prizesNeedPlayers => l.p_prizesNeedPlayers(p.n),
+      ProblemCode.boardUnclear => l.p_boardUnclear,
+      ProblemCode.sponsorName => l.p_sponsorName,
+      ProblemCode.sponsor2Name => l.p_sponsor2Name,
+      ProblemCode.whiteLabel => l.p_whiteLabel(labelIssueText(l, p.label!)),
+      ProblemCode.blackLabel => l.p_blackLabel(labelIssueText(l, p.label!)),
+    };
+
+String logoErrorText(L l, LogoError e) => switch (e.issue) {
+      LogoIssue.svg => l.e_svg,
+      LogoIssue.type => l.e_type,
+      LogoIssue.big => l.e_big,
+      LogoIssue.empty => l.e_empty,
+      LogoIssue.https => l.e_https,
+      LogoIssue.link => l.e_link,
+      LogoIssue.http => l.e_http('${e.httpCode}'),
+      LogoIssue.webpage => l.e_webpage,
+      LogoIssue.notPicture => l.e_notPicture,
+    };
+
+String checkText(L l, CheckKind k) => switch (k) {
+      CheckKind.whiteOnDark => l.check_whiteOnDark,
+      CheckKind.blackOnDark => l.check_blackOnDark,
+      CheckKind.sidesApart => l.check_sidesApart,
+      CheckKind.squaresApart => l.check_squaresApart,
+    };
+
+String splitName(L l, String key) => switch (key) {
+      'Winner takes all' => l.split_winner,
+      'Top 3' => l.split_top3,
+      'Top 5' => l.split_top5,
+      _ => key,
+    };
 
 /// A small rounded tag.
 class Tag extends StatelessWidget {
@@ -153,7 +195,8 @@ class ChecksList extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
-                    '${c.label} (${c.value.toStringAsFixed(1)} : 1, needs ${c.need.toStringAsFixed(1)})',
+                    context.l.checkLine(checkText(context.l, c.kind),
+                        c.value.toStringAsFixed(1), c.need.toStringAsFixed(1)),
                     style: t.textTheme.bodySmall)),
           ]),
         ),

@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 
-const _green = Color(0xFF7FA650);
-const _amber = Color(0xFFD9A441);
+import 'fonts.dart';
+
+// Green that passes text contrast (4.5:1) in each mode:
+// darker in light mode, lighter (with dark text on it) in dark mode.
+const _greenLight = Color(0xFF4F7A28);
+const _greenDark = Color(0xFF8FBF5A);
+const _amber = Color(0xFFD9A441); // results and money only
 
 ThemeData appTheme(Brightness b) {
   final dark = b == Brightness.dark;
+  final green = dark ? _greenDark : _greenLight;
   final scheme = ColorScheme.fromSeed(
-    seedColor: _green,
+    seedColor: green,
     brightness: b,
     surface: dark ? const Color(0xFF16191D) : const Color(0xFFF4F2EE),
   ).copyWith(
-    primary: _green,
+    primary: green,
+    onPrimary: dark ? const Color(0xFF10210A) : Colors.white,
     secondary: _amber,
     surfaceContainer: dark ? const Color(0xFF1E2227) : Colors.white,
     surfaceContainerHigh: dark ? const Color(0xFF262B31) : const Color(0xFFECE9E3),
   );
   return ThemeData(
     useMaterial3: true,
+    // Arabic letters come from this font once it is loaded (fonts.dart).
+    fontFamilyFallback: const [arabicFont],
     colorScheme: scheme,
     scaffoldBackgroundColor: scheme.surface,
     appBarTheme: AppBarTheme(
@@ -28,11 +37,14 @@ ThemeData appTheme(Brightness b) {
       color: scheme.surfaceContainer,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      // Light mode: a thin border instead of a shadow. Dark mode: tonal fill.
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: dark ? BorderSide.none : BorderSide(color: scheme.outlineVariant),
+      ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        foregroundColor: Colors.white,
         minimumSize: const Size(0, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),

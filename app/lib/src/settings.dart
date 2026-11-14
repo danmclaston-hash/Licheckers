@@ -20,8 +20,12 @@ class AppSettings {
   final bool showInfo;
   final double textScale;
 
+  /// App language code ('en', 'fr', 'sw', 'lg', 'ar', 'pt', 'es').
+  /// null = follow the phone's language.
+  final String? locale;
+
   const AppSettings({
-    this.themeMode = ThemeMode.dark,
+    this.themeMode = ThemeMode.system,
     this.boardTheme = 'walnut',
     this.pieceStyle = 'classic',
     this.animMs = 220,
@@ -29,6 +33,7 @@ class AppSettings {
     this.showLegalMoves = true,
     this.showInfo = true,
     this.textScale = 1.0,
+    this.locale,
   });
 
   AppSettings copyWith({
@@ -40,6 +45,7 @@ class AppSettings {
     bool? showLegalMoves,
     bool? showInfo,
     double? textScale,
+    String? Function()? locale,
   }) =>
       AppSettings(
         themeMode: themeMode ?? this.themeMode,
@@ -50,6 +56,7 @@ class AppSettings {
         showLegalMoves: showLegalMoves ?? this.showLegalMoves,
         showInfo: showInfo ?? this.showInfo,
         textScale: textScale ?? this.textScale,
+        locale: locale != null ? locale() : this.locale,
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,6 +68,7 @@ class AppSettings {
         'showLegalMoves': showLegalMoves,
         'showInfo': showInfo,
         'textScale': textScale,
+        'locale': locale,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
@@ -76,6 +84,7 @@ class AppSettings {
       showLegalMoves: j['showLegalMoves'] as bool? ?? d.showLegalMoves,
       showInfo: j['showInfo'] as bool? ?? d.showInfo,
       textScale: (j['textScale'] as num?)?.toDouble() ?? d.textScale,
+      locale: j['locale'] as String?,
     );
   }
 }

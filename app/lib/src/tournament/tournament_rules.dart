@@ -14,6 +14,7 @@ const themeFeeUgx = 15000; // sponsor look for one tournament (one sponsor)
 const piecesAddOnUgx = 3000; // sponsor name on that sponsor's pieces
 const creationFeeUgx = 3700; // about USD 1; the developer pays nothing
 const minDurationMin = 30;
+const minPoolUgx = 10000;
 const maxDurationMin = 240; // tournaments never run longer than 4 hours
 const minStartLeadMin = 30; // a normal tournament must start 30 min from now
 const sponsoredLeadMin = 360; // sponsor art needs 6 hours for the safety check
@@ -127,10 +128,12 @@ const minSquaresApart = 2.0;
 const minLabelOnPiece = 4.5;
 const maxLabelLength = 6;
 
+enum CheckKind { whiteOnDark, blackOnDark, sidesApart, squaresApart }
+
 class Check {
-  final String label;
+  final CheckKind kind;
   final double value, need;
-  const Check(this.label, this.value, this.need);
+  const Check(this.kind, this.value, this.need);
   bool get ok => value >= need;
 }
 
@@ -140,14 +143,11 @@ List<Check> boardChecks(BoardTheme b, PieceStyle p) {
   double onDark(Color piece) => min(
       contrastRatio(piece, b.darkA), contrastRatio(piece, b.darkB));
   return [
-    Check('White pieces stand out from the dark squares', onDark(white),
-        minPieceOnSquare),
-    Check('Black pieces stand out from the dark squares', onDark(black),
-        minPieceOnSquare),
-    Check('White and black pieces are easy to tell apart',
-        contrastRatio(white, black), minSideApart),
+    Check(CheckKind.whiteOnDark, onDark(white), minPieceOnSquare),
+    Check(CheckKind.blackOnDark, onDark(black), minPieceOnSquare),
+    Check(CheckKind.sidesApart, contrastRatio(white, black), minSideApart),
     Check(
-        'Light and dark squares are easy to tell apart',
+        CheckKind.squaresApart,
         contrastRatio(_mean(b.lightA, b.lightB), _mean(b.darkA, b.darkB)),
         minSquaresApart),
   ];
@@ -165,17 +165,33 @@ bool boardApproved(BoardTheme b, PieceStyle p) =>
   return w >= k ? (const Color(0xFFFFFFFF), w) : (const Color(0xFF000000), k);
 }
 
-/// null = fine, otherwise the reason it is refused.
-String? labelProblem(String text, Color pieceA, Color pieceB) {
+enum LabelIssue { empty, tooLong, unreadable }
+
+/// null = fine, otherwise why a sponsor name cannot go on the pieces.
+LabelIssue? labelProblem(String text, Color pieceA, Color pieceB) {
   final t = text.trim();
-  if (t.isEmpty) return 'Type a short name (up to $maxLabelLength letters).';
-  if (t.length > maxLabelLength) {
-    return 'Too long: at most $maxLabelLength letters so the king crown stays visible.';
-  }
+  if (t.isEmpty) return LabelIssue.empty;
+  if (t.length > maxLabelLength) return LabelIssue.tooLong;
   if (labelColourFor(pieceA, pieceB).$2 < minLabelOnPiece) {
-    return 'This name would be hard to read on these pieces. Pick other pieces.';
+    return LabelIssue.unreadable;
   }
   return null;
+}
+
+/// Why a draft cannot be created yet. A code (not English text), so every
+/// screen can show it in the user's language.
+enum ProblemCode {
+  nameShort, clockRange, lengthRange, startSoon, sponsoredStartSoon,
+  swissFew, swissTooMany, arenaTooSlow, minPlayers, maxBelowMin,
+  poolTooSmall, prizesNeedPlayers, boardUnclear, sponsorName, sponsor2Name,
+  whiteLabel, blackLabel,
+}
+
+class Problem {
+  final ProblemCode code;
+  final int n; // a number the message needs (rounds, prizes, amount)
+  final LabelIssue? label;
+  const Problem(this.code, {this.n = 0, this.label});
 }
 
 // ---------------------------------------------------------------------------
@@ -244,55 +260,54 @@ class TournamentDraft {
       (isDeveloper ? 0 : creationFeeUgx) + poolUgx + sponsorFee;
 
   /// Why this draft cannot be created yet. Empty = good to go.
-  List<String> problems({DateTime? now}) {
+  List<Problem> problems({DateTime? now}) {
     final t = now ?? DateTime.now();
-    final p = <String>[];
-    if (name.trim().length < 3) p.add('Give the tournament a name (3+ letters).');
+    final p = <Problem>[];
+    void add(ProblemCode c, {int n = 0, LabelIssue? label}) =>
+        p.add(Problem(c, n: n, label: label));
+    if (name.trim().length < 3) add(ProblemCode.nameShort);
     final r = clockRanges[clock]!;
     if (baseMin < r.minBase || baseMin > r.maxBase ||
         incSec < r.minInc || incSec > r.maxInc) {
-      p.add('The clock is outside the ${r.name} range.');
+      add(ProblemCode.clockRange);
     }
     if (durationMin < minDurationMin || durationMin > maxDurationMin) {
-      p.add('Length must be between 30 minutes and 4 hours.');
+      add(ProblemCode.lengthRange);
     }
     final lead = sponsor == SponsorMode.none ? minStartLeadMin : sponsoredLeadMin;
     if (start.isBefore(t.add(Duration(minutes: lead)))) {
-      p.add(sponsor == SponsorMode.none
-          ? 'Start at least 30 minutes from now.'
-          : 'Sponsored tournaments must start at least 6 hours from now, so the artwork can be checked.');
+      add(sponsor == SponsorMode.none
+          ? ProblemCode.startSoon
+          : ProblemCode.sponsoredStartSoon);
     }
     if (format == TFormat.swiss) {
       if (maxRounds < 3) {
-        p.add('Only $maxRounds Swiss rounds fit. Make it longer or the clock faster.');
+        add(ProblemCode.swissFew, n: maxRounds);
       } else if (rounds > maxRounds) {
-        p.add('At most $maxRounds rounds fit in this time.');
+        add(ProblemCode.swissTooMany, n: maxRounds);
       }
     } else if (!arenaFits(durationMin, baseMin, incSec)) {
-      p.add('This clock is too slow for this time window. Make the tournament longer or the clock faster.');
+      add(ProblemCode.arenaTooSlow);
     }
-    if (minPlayers < 2) p.add('At least 2 players are needed.');
-    if (maxPlayers < minPlayers) p.add('Maximum players must be at least the minimum.');
-    if (poolUgx < 10000) p.add('The prize pool must be at least ${ugx(10000)}.');
-    if (feeUgx < 0) p.add('The entry fee cannot be negative.');
+    if (minPlayers < 2) add(ProblemCode.minPlayers);
+    if (maxPlayers < minPlayers) add(ProblemCode.maxBelowMin);
+    if (poolUgx < minPoolUgx) add(ProblemCode.poolTooSmall, n: minPoolUgx);
     if (percents.length > minPlayers) {
-      p.add('${percents.length} prizes need at least ${percents.length} players.');
+      add(ProblemCode.prizesNeedPlayers, n: percents.length);
     }
     final board = boardThemeById(boardId), piece = pieceStyleById(pieceId);
-    if (!boardApproved(board, piece)) {
-      p.add('This board and piece pair is not clear enough. Pick another pair.');
-    }
+    if (!boardApproved(board, piece)) add(ProblemCode.boardUnclear);
     if (sponsor != SponsorMode.none) {
-      if (sponsorA.trim().isEmpty) p.add('Enter the sponsor name.');
+      if (sponsorA.trim().isEmpty) add(ProblemCode.sponsorName);
       if (piecesA) {
         final e = labelProblem(sponsorA, piece.whiteA, piece.whiteB);
-        if (e != null) p.add('White pieces: $e');
+        if (e != null) add(ProblemCode.whiteLabel, label: e);
       }
       if (sponsor == SponsorMode.half) {
-        if (sponsorB.trim().isEmpty) p.add('Enter the second sponsor name.');
+        if (sponsorB.trim().isEmpty) add(ProblemCode.sponsor2Name);
         if (piecesB) {
           final e = labelProblem(sponsorB, piece.blackA, piece.blackB);
-          if (e != null) p.add('Black pieces: $e');
+          if (e != null) add(ProblemCode.blackLabel, label: e);
         }
       }
     }
