@@ -7,11 +7,14 @@ import 'bots.dart';
 /// A bot job as plain text, so it can travel to a background worker.
 /// The worker replays the game from the start, so it knows every detail
 /// (draw counters, repeated positions) exactly like the app does.
-String encodeBotJob(Game game, String variantId, int level, int seed) =>
+/// [capMs] limits thinking time (used when the bot plays on a clock).
+String encodeBotJob(Game game, String variantId, int level, int seed,
+        {int? capMs}) =>
     jsonEncode({
       'v': variantId,
       'l': level,
       's': seed,
+      if (capMs != null) 't': capMs,
       'm': [for (final m in game.moves) [m.from, m.to, m.captured]],
     });
 
@@ -26,7 +29,12 @@ String runBotJob(String job) {
     final ok = game.play(want);
     if (!ok) throw StateError('replay failed at $want');
   }
-  final bot = bots[(j['l'] as int) - 1];
+  var bot = bots[(j['l'] as int) - 1];
+  final cap = j['t'] as int?;
+  if (cap != null && cap < bot.timeMs) {
+    bot = BotProfile(bot.level, bot.name, bot.description, bot.depth, cap,
+        bot.mistakeRate, bot.mistakeSize);
+  }
   final best = pickBotMove(game.position, bot,
       history: game.seenKeys.toList(), seed: j['s'] as int);
   return jsonEncode([best.from, best.to, best.captured]);

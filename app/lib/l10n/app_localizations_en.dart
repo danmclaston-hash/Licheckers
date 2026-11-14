@@ -1238,4 +1238,55 @@ class LEn extends L {
 
   @override
   String get youWouldEnd => 'You would end with';
+
+  @override
+  String get quickEasy => 'Easy';
+
+  @override
+  String get quickMedium => 'Medium';
+
+  @override
+  String get quickHard => 'Hard';
+
+  @override
+  String get twoPlayersSub => 'one device';
+
+  @override
+  String get customTile => 'Custom';
+
+  @override
+  String get customSub => 'your choices';
+
+  @override
+  String get customTitle => 'Custom game';
+
+  @override
+  String get chooseVariant => 'Choose a game';
+
+  @override
+  String get nextTournament => 'Next tournament';
+
+  @override
+  String get noClock => 'No clock';
+
+  @override
+  String get reasonTimeout => 'time ran out';
+
+  @override
+  String get newGame => 'New game';
+
+  @override
+  String get sounds => 'Sounds and vibration';
+
+  @override
+  String get soundsSub => 'Moves, captures, kings, low time and game end';
+
+  @override
+  String get prevMove => 'Previous move';
+
+  @override
+  String get nextMove => 'Next move';
+
+  @override
+  String get backToGame => 'Back to the game';
 }

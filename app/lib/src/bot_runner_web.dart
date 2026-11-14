@@ -20,8 +20,9 @@ final Map<_Worker, Completer<Move>> _live = {};
 
 /// Finds the bot's move in a Web Worker, so the page stays smooth.
 /// If the worker cannot start, falls back to a short think on the page.
-Future<Move> askBot(Game game, String variantId, int level, int seed) {
-  final job = encodeBotJob(game, variantId, level, seed);
+Future<Move> askBot(Game game, String variantId, int level, int seed,
+    {int? capMs}) {
+  final job = encodeBotJob(game, variantId, level, seed, capMs: capMs);
   final done = Completer<Move>();
 
   void fallback() {

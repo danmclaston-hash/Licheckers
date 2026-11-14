@@ -1243,4 +1243,55 @@ class LPt extends L {
 
   @override
   String get youWouldEnd => 'Ficaria com';
+
+  @override
+  String get quickEasy => 'Fácil';
+
+  @override
+  String get quickMedium => 'Médio';
+
+  @override
+  String get quickHard => 'Difícil';
+
+  @override
+  String get twoPlayersSub => 'um aparelho';
+
+  @override
+  String get customTile => 'Personalizado';
+
+  @override
+  String get customSub => 'as suas escolhas';
+
+  @override
+  String get customTitle => 'Jogo personalizado';
+
+  @override
+  String get chooseVariant => 'Escolher um jogo';
+
+  @override
+  String get nextTournament => 'Próximo torneio';
+
+  @override
+  String get noClock => 'Sem relógio';
+
+  @override
+  String get reasonTimeout => 'o tempo acabou';
+
+  @override
+  String get newGame => 'Novo jogo';
+
+  @override
+  String get sounds => 'Sons e vibração';
+
+  @override
+  String get soundsSub => 'Jogadas, capturas, damas, pouco tempo e fim do jogo';
+
+  @override
+  String get prevMove => 'Jogada anterior';
+
+  @override
+  String get nextMove => 'Jogada seguinte';
+
+  @override
+  String get backToGame => 'Voltar ao jogo';
 }

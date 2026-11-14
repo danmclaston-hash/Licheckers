@@ -21,24 +21,36 @@ Future<ProviderScope> app() async {
 }
 
 void main() {
-  testWidgets('home shows Play, and Start opens a board', (tester) async {
-    // A tall phone-shaped screen so the whole Play page is on screen.
+  testWidgets('home grid: one tap on "Two players" opens a board', (tester) async {
     tester.view.physicalSize = const Size(500, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(await app());
-    expect(find.text('Start game'), findsOneWidget);
-    await tester.tap(find.text('Two players'));
-    await tester.pump();
-    await tester.ensureVisible(find.text('Start game'));
-    await tester.tap(find.text('Start game'));
+    expect(find.text('Easy'), findsOneWidget);
+    expect(find.text('3+2'), findsOneWidget);
+    await tester.tap(find.text('Two players').first);
     await tester.pumpAndSettle();
     expect(find.text('Resign'), findsOneWidget);
     expect(find.textContaining('to move'), findsOneWidget);
+    expect(find.text('No moves yet'), findsOneWidget); // the move strip
+  });
+
+  testWidgets('Custom opens the full setup with a clock choice', (tester) async {
+    tester.view.physicalSize = const Size(500, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(await app());
+    await tester.tap(find.text('Custom'));
+    await tester.pumpAndSettle();
+    expect(find.text('Custom game'), findsOneWidget);
+    expect(find.text('No clock'), findsOneWidget);
+    expect(find.text('Start game'), findsOneWidget);
   });
 
   testWidgets('info buttons disappear when switched off', (tester) async {
     await tester.pumpWidget(await app());
+    await tester.tap(find.byType(NavigationDestination).at(1)); // Tournaments
+    await tester.pumpAndSettle();
     expect(find.byType(InfoTip), findsWidgets);
     expect(find.byIcon(Icons.info_outline), findsWidgets);
     final container = ProviderScope.containerOf(
@@ -82,5 +94,72 @@ void main() {
         expect(i18n.variantName(l, v.id), isNot(v.id), reason: '$code ${v.id}');
       }
     }
+  });
+
+  group('clocks', () {
+    test('the first move is free, then the clock runs and increments', () async {
+      final c = GameController()
+        ..start(const GameSetup(Variants.english, null, white,
+            clock: TimeControl(1, 2)));
+      // In English (American) checkers Black moves first.
+      final first = c.game!.position.turn, second = 1 - first;
+      expect(c.timeLeft(first), 60000);
+      expect(c.clockRunning, isFalse); // nobody has moved yet
+      var m = c.game!.legal.first;
+      c.tap(m.from);
+      c.tap(m.to);
+      expect(c.clockRunning, isTrue);
+      expect(c.timeLeft(first), 60000); // first move: no charge, no increment
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(c.timeLeft(second), lessThan(60000));
+      m = c.game!.legal.first;
+      c.tap(m.from);
+      c.tap(m.to);
+      // The second player paid ~120 ms and earned 2 s back.
+      expect(c.timeLeft(second), greaterThan(61500));
+      expect(c.canUndo, isFalse); // no undo in timed games
+      c.close();
+    });
+
+    test('running out of time loses the game', () async {
+      final c = GameController()
+        ..start(const GameSetup(Variants.english, null, white,
+            clock: TimeControl(0, 0)));
+      final first = c.game!.position.turn;
+      final m = c.game!.legal.first;
+      c.tap(m.from);
+      c.tap(m.to); // the other side's clock (0 ms) starts now
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // The side that moved first wins: the other one ran out of time.
+      expect(c.result, first == white ? GameResult.whiteWins : GameResult.blackWins);
+      expect(c.resultReason, 'time ran out');
+      c.close();
+    });
+
+    test('browsing old moves shows old positions and blocks moves', () {
+      final c = GameController()
+        ..start(const GameSetup(Variants.english, null, white));
+      final m = c.game!.legal.first;
+      c.tap(m.from);
+      c.tap(m.to);
+      c.stepBack();
+      expect(c.viewIndex, 0);
+      expect(c.shownPosition!.key, Position.initial(Variants.english).key);
+      expect(c.humanToMove, isFalse);
+      c.backToLive();
+      expect(c.viewIndex, isNull);
+      expect(c.humanToMove, isTrue);
+    });
+
+    test('sounds: a move and a capture are reported', () {
+      final heard = <GameSound>[];
+      final c = GameController()
+        ..onSound = heard.add
+        ..start(const GameSetup(Variants.english, null, white));
+      final m = c.game!.legal.first;
+      c.tap(m.from);
+      c.tap(m.to);
+      expect(heard, [GameSound.move]);
+    });
   });
 }

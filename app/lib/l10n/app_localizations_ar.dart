@@ -1230,4 +1230,55 @@ class LAr extends L {
 
   @override
   String get youWouldEnd => 'سيتبقى لك';
+
+  @override
+  String get quickEasy => 'سهل';
+
+  @override
+  String get quickMedium => 'متوسط';
+
+  @override
+  String get quickHard => 'صعب';
+
+  @override
+  String get twoPlayersSub => 'جهاز واحد';
+
+  @override
+  String get customTile => 'مخصص';
+
+  @override
+  String get customSub => 'اختياراتك';
+
+  @override
+  String get customTitle => 'لعبة مخصصة';
+
+  @override
+  String get chooseVariant => 'اختر لعبة';
+
+  @override
+  String get nextTournament => 'البطولة القادمة';
+
+  @override
+  String get noClock => 'بلا ساعة';
+
+  @override
+  String get reasonTimeout => 'انتهى الوقت';
+
+  @override
+  String get newGame => 'لعبة جديدة';
+
+  @override
+  String get sounds => 'الأصوات والاهتزاز';
+
+  @override
+  String get soundsSub => 'الحركات والأكل والملوك والوقت القليل ونهاية اللعبة';
+
+  @override
+  String get prevMove => 'الحركة السابقة';
+
+  @override
+  String get nextMove => 'الحركة التالية';
+
+  @override
+  String get backToGame => 'العودة إلى اللعبة';
 }

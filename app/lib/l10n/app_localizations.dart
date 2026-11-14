@@ -2188,6 +2188,108 @@ abstract class L {
   /// In en, this message translates to:
   /// **'You would end with'**
   String get youWouldEnd;
+
+  /// No description provided for @quickEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get quickEasy;
+
+  /// No description provided for @quickMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get quickMedium;
+
+  /// No description provided for @quickHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get quickHard;
+
+  /// No description provided for @twoPlayersSub.
+  ///
+  /// In en, this message translates to:
+  /// **'one device'**
+  String get twoPlayersSub;
+
+  /// No description provided for @customTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customTile;
+
+  /// No description provided for @customSub.
+  ///
+  /// In en, this message translates to:
+  /// **'your choices'**
+  String get customSub;
+
+  /// No description provided for @customTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom game'**
+  String get customTitle;
+
+  /// No description provided for @chooseVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a game'**
+  String get chooseVariant;
+
+  /// No description provided for @nextTournament.
+  ///
+  /// In en, this message translates to:
+  /// **'Next tournament'**
+  String get nextTournament;
+
+  /// No description provided for @noClock.
+  ///
+  /// In en, this message translates to:
+  /// **'No clock'**
+  String get noClock;
+
+  /// No description provided for @reasonTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'time ran out'**
+  String get reasonTimeout;
+
+  /// No description provided for @newGame.
+  ///
+  /// In en, this message translates to:
+  /// **'New game'**
+  String get newGame;
+
+  /// No description provided for @sounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds and vibration'**
+  String get sounds;
+
+  /// No description provided for @soundsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves, captures, kings, low time and game end'**
+  String get soundsSub;
+
+  /// No description provided for @prevMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous move'**
+  String get prevMove;
+
+  /// No description provided for @nextMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Next move'**
+  String get nextMove;
+
+  /// No description provided for @backToGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the game'**
+  String get backToGame;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

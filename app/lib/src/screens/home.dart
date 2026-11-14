@@ -5,7 +5,7 @@ import '../install/install_banner.dart';
 import '../layout.dart';
 import '../tournament/tournaments_screen.dart';
 import 'learn_screen.dart';
-import 'play_setup.dart';
+import 'play_home.dart';
 import 'settings_screen.dart';
 
 /// The shell: a slim rail on wide screens, a bottom bar on phones.
@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     final wide = MediaQuery.sizeOf(context).width >= kWideBreakpoint;
     final page = IndexedStack(index: _tab, children: const [
-      PlaySetupScreen(),
+      PlayHome(),
       TournamentsScreen(),
       LearnScreen(),
       SettingsScreen(),

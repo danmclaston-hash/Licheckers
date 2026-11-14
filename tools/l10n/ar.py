@@ -208,3 +208,11 @@ T = {
 "yourMoney": "أموالك (المنظِّم)", "feesSoFar": "رسوم الدخول حتى الآن", "poolLocked": "الجوائز المحجوزة",
 "youWouldEnd": "سيتبقى لك",
 }
+T.update({
+"quickEasy": "سهل", "quickMedium": "متوسط", "quickHard": "صعب",
+"twoPlayersSub": "جهاز واحد", "customTile": "مخصص", "customSub": "اختياراتك",
+"customTitle": "لعبة مخصصة", "chooseVariant": "اختر لعبة", "nextTournament": "البطولة القادمة",
+"noClock": "بلا ساعة", "reasonTimeout": "انتهى الوقت", "newGame": "لعبة جديدة",
+"sounds": "الأصوات والاهتزاز", "soundsSub": "الحركات والأكل والملوك والوقت القليل ونهاية اللعبة",
+"prevMove": "الحركة السابقة", "nextMove": "الحركة التالية", "backToGame": "العودة إلى اللعبة",
+})

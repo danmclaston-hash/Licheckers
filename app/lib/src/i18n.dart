@@ -110,6 +110,7 @@ String reasonText(L l, String? reason) {
   if (reason == 'resignation') return l.reasonResign;
   if (reason == 'no legal moves') return l.reasonNoMoves;
   if (reason == 'same position three times') return l.reasonRepetition;
+  if (reason == 'time ran out') return l.reasonTimeout;
   final n = RegExp(r'^(\d+) moves each').firstMatch(reason);
   if (n != null) return l.reasonNoProgress(int.parse(n.group(1)!));
   return reason;
