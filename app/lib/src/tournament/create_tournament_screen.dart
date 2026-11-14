@@ -110,13 +110,14 @@ class _CreateState extends ConsumerState<CreateTournamentScreen> {
   }
 
   Future<void> _run(Future<void> Function() job) async {
+    final l = context.l; // read before waiting: the page may change after
     setState(() => _busy = true);
     try {
       await job();
     } on LogoError catch (e) {
-      _say(logoErrorText(context.l, e));
+      _say(logoErrorText(l, e));
     } catch (e) {
-      _say(context.l.somethingWrong('$e'));
+      _say(l.somethingWrong('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
