@@ -208,3 +208,11 @@ T = {
 "yourMoney": "Pesa zako (mwenyeji)", "feesSoFar": "Viingilio hadi sasa", "poolLocked": "Zawadi iliyofungwa",
 "youWouldEnd": "Ungebaki na",
 }
+T.update({
+"quickEasy": "Rahisi", "quickMedium": "Wastani", "quickHard": "Ngumu",
+"twoPlayersSub": "kifaa kimoja", "customTile": "Chagua mwenyewe", "customSub": "machaguo yako",
+"customTitle": "Mchezo wa machaguo yako", "chooseVariant": "Chagua mchezo", "nextTournament": "Mashindano yajayo",
+"noClock": "Bila saa", "reasonTimeout": "muda umekwisha", "newGame": "Mchezo mpya",
+"sounds": "Sauti na mtetemo", "soundsSub": "Hatua, kula, mafalme, muda mfupi na mwisho wa mchezo",
+"prevMove": "Hatua iliyopita", "nextMove": "Hatua inayofuata", "backToGame": "Rudi kwenye mchezo",
+})

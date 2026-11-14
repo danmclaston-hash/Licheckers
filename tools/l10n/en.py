@@ -236,3 +236,13 @@ T = {
 
 # Placeholders that are numbers (all others are text).
 INTS = {"size", "count", "n", "max", "min", "h", "m", "s", "pct"}
+
+# Home grid, clocks, sounds, move strip (Nov 2026)
+T.update({
+"quickEasy": "Easy", "quickMedium": "Medium", "quickHard": "Hard",
+"twoPlayersSub": "one device", "customTile": "Custom", "customSub": "your choices",
+"customTitle": "Custom game", "chooseVariant": "Choose a game", "nextTournament": "Next tournament",
+"noClock": "No clock", "reasonTimeout": "time ran out", "newGame": "New game",
+"sounds": "Sounds and vibration", "soundsSub": "Moves, captures, kings, low time and game end",
+"prevMove": "Previous move", "nextMove": "Next move", "backToGame": "Back to the game",
+})

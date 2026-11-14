@@ -1242,4 +1242,56 @@ class LSw extends L {
 
   @override
   String get youWouldEnd => 'Ungebaki na';
+
+  @override
+  String get quickEasy => 'Rahisi';
+
+  @override
+  String get quickMedium => 'Wastani';
+
+  @override
+  String get quickHard => 'Ngumu';
+
+  @override
+  String get twoPlayersSub => 'kifaa kimoja';
+
+  @override
+  String get customTile => 'Chagua mwenyewe';
+
+  @override
+  String get customSub => 'machaguo yako';
+
+  @override
+  String get customTitle => 'Mchezo wa machaguo yako';
+
+  @override
+  String get chooseVariant => 'Chagua mchezo';
+
+  @override
+  String get nextTournament => 'Mashindano yajayo';
+
+  @override
+  String get noClock => 'Bila saa';
+
+  @override
+  String get reasonTimeout => 'muda umekwisha';
+
+  @override
+  String get newGame => 'Mchezo mpya';
+
+  @override
+  String get sounds => 'Sauti na mtetemo';
+
+  @override
+  String get soundsSub =>
+      'Hatua, kula, mafalme, muda mfupi na mwisho wa mchezo';
+
+  @override
+  String get prevMove => 'Hatua iliyopita';
+
+  @override
+  String get nextMove => 'Hatua inayofuata';
+
+  @override
+  String get backToGame => 'Rudi kwenye mchezo';
 }

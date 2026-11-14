@@ -208,3 +208,11 @@ T = {
 "yourMoney": "Tu dinero (organizador)", "feesSoFar": "Inscripciones hasta ahora", "poolLocked": "Bolsa bloqueada",
 "youWouldEnd": "Te quedarías con",
 }
+T.update({
+"quickEasy": "Fácil", "quickMedium": "Medio", "quickHard": "Difícil",
+"twoPlayersSub": "un dispositivo", "customTile": "Personalizada", "customSub": "tus opciones",
+"customTitle": "Partida personalizada", "chooseVariant": "Elegir un juego", "nextTournament": "Próximo torneo",
+"noClock": "Sin reloj", "reasonTimeout": "se acabó el tiempo", "newGame": "Nueva partida",
+"sounds": "Sonidos y vibración", "soundsSub": "Jugadas, capturas, damas, poco tiempo y fin de partida",
+"prevMove": "Jugada anterior", "nextMove": "Jugada siguiente", "backToGame": "Volver a la partida",
+})

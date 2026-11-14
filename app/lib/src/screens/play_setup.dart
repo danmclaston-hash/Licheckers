@@ -7,9 +7,11 @@ import '../game_controller.dart';
 import '../info_tip.dart';
 import '../i18n.dart';
 import 'game_screen.dart';
+import '../settings.dart';
 import 'home.dart';
+import 'play_home.dart';
 
-/// Choose the game, the opponent and your colour, then play.
+/// "Custom": every choice by hand (game, opponent, level, colour, clock).
 class PlaySetupScreen extends ConsumerStatefulWidget {
   const PlaySetupScreen({super.key});
 
@@ -18,15 +20,24 @@ class PlaySetupScreen extends ConsumerStatefulWidget {
 }
 
 class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
-  VariantRules _variant = Variants.english;
+  late VariantRules _variant =
+      PlayHome.variantOf(ref.read(settingsProvider).variant);
   bool _vsBot = true;
   int _level = 4;
   int _side = white;
+  TimeControl? _clock;
+
+  static const _clocks = [
+    TimeControl(1, 0), TimeControl(3, 2), TimeControl(5, 3),
+    TimeControl(10, 5), TimeControl(15, 10),
+  ];
 
   void _start() {
-    ref.read(gameProvider).start(
-        GameSetup(_variant, _vsBot ? bots[_level - 1] : null, _side));
-    Navigator.of(context).push(
+    ref.read(gameProvider).start(GameSetup(
+        _variant, _vsBot ? bots[_level - 1] : null, _side,
+        clock: _clock));
+    // Replace this page, so "back" from the game returns to the home grid.
+    Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(builder: (_) => const GameScreen()));
   }
 
@@ -35,7 +46,9 @@ class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
     final t = Theme.of(context);
     final l = context.l;
     final bot = bots[_level - 1];
-    return PageBody(title: l.navPlay, children: [
+    return Scaffold(
+      appBar: AppBar(),
+      body: PageBody(title: l.customTitle, children: [
       SectionCard(
         title: l.sectionGame,
         trailing: InfoTip(title: l.variantsInfoTitle, text: l.variantsInfoText),
@@ -137,12 +150,30 @@ class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
             onSelectionChanged: (s) => setState(() => _side = s.first),
           ),
         ),
+      SectionCard(
+        title: l.clockTitle,
+        trailing: InfoTip(title: l.clockTitle, text: l.clockTypesText),
+        child: Wrap(spacing: 8, runSpacing: 8, children: [
+          ChoiceChip(
+            label: Text(l.noClock),
+            selected: _clock == null,
+            onSelected: (_) => setState(() => _clock = null),
+          ),
+          for (final c in _clocks)
+            ChoiceChip(
+              label: Text(c.label),
+              selected: _clock == c,
+              onSelected: (_) => setState(() => _clock = c),
+            ),
+        ]),
+      ),
       const SizedBox(height: 4),
       FilledButton.icon(
         onPressed: _start,
         icon: const Icon(Icons.play_arrow),
         label: Text(l.startGame),
       ),
-    ]);
+    ]),
+    );
   }
 }

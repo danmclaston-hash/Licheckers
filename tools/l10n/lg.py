@@ -210,3 +210,11 @@ T = {
 "yourMoney": "Ssente zo (omutegesi)", "feesSoFar": "Ssente z'okuyingira okutuuka kati", "poolLocked": "Ebirabo ebisibe",
 "youWouldEnd": "Wandisigazza",
 }
+T.update({
+"quickEasy": "Kyangu", "quickMedium": "Wakati", "quickHard": "Kizibu",
+"twoPlayersSub": "essimu emu", "customTile": "Londa wekka", "customSub": "by'olonze",
+"customTitle": "Omuzannyo gw'olonze", "chooseVariant": "Londa omuzannyo", "nextTournament": "Empaka eziddako",
+"noClock": "Tewali ssaawa", "reasonTimeout": "obudde buweddeko", "newGame": "Omuzannyo omupya",
+"sounds": "Amaloboozi n'okukankana", "soundsSub": "Okutambula, okulya, bakabaka, obudde obutono n'enkomerero",
+"prevMove": "Okutambula okwasooka", "nextMove": "Okutambula okuddako", "backToGame": "Ddayo ku muzannyo",
+})

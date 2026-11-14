@@ -1243,4 +1243,56 @@ class LEs extends L {
 
   @override
   String get youWouldEnd => 'Te quedarías con';
+
+  @override
+  String get quickEasy => 'Fácil';
+
+  @override
+  String get quickMedium => 'Medio';
+
+  @override
+  String get quickHard => 'Difícil';
+
+  @override
+  String get twoPlayersSub => 'un dispositivo';
+
+  @override
+  String get customTile => 'Personalizada';
+
+  @override
+  String get customSub => 'tus opciones';
+
+  @override
+  String get customTitle => 'Partida personalizada';
+
+  @override
+  String get chooseVariant => 'Elegir un juego';
+
+  @override
+  String get nextTournament => 'Próximo torneo';
+
+  @override
+  String get noClock => 'Sin reloj';
+
+  @override
+  String get reasonTimeout => 'se acabó el tiempo';
+
+  @override
+  String get newGame => 'Nueva partida';
+
+  @override
+  String get sounds => 'Sonidos y vibración';
+
+  @override
+  String get soundsSub =>
+      'Jugadas, capturas, damas, poco tiempo y fin de partida';
+
+  @override
+  String get prevMove => 'Jugada anterior';
+
+  @override
+  String get nextMove => 'Jugada siguiente';
+
+  @override
+  String get backToGame => 'Volver a la partida';
 }

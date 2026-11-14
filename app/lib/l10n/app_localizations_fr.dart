@@ -1244,4 +1244,55 @@ class LFr extends L {
 
   @override
   String get youWouldEnd => 'Il vous resterait';
+
+  @override
+  String get quickEasy => 'Facile';
+
+  @override
+  String get quickMedium => 'Moyen';
+
+  @override
+  String get quickHard => 'Difficile';
+
+  @override
+  String get twoPlayersSub => 'un seul appareil';
+
+  @override
+  String get customTile => 'Sur mesure';
+
+  @override
+  String get customSub => 'vos choix';
+
+  @override
+  String get customTitle => 'Partie sur mesure';
+
+  @override
+  String get chooseVariant => 'Choisir un jeu';
+
+  @override
+  String get nextTournament => 'Prochain tournoi';
+
+  @override
+  String get noClock => 'Sans pendule';
+
+  @override
+  String get reasonTimeout => 'temps écoulé';
+
+  @override
+  String get newGame => 'Nouvelle partie';
+
+  @override
+  String get sounds => 'Sons et vibrations';
+
+  @override
+  String get soundsSub => 'Coups, prises, dames, temps court et fin de partie';
+
+  @override
+  String get prevMove => 'Coup précédent';
+
+  @override
+  String get nextMove => 'Coup suivant';
+
+  @override
+  String get backToGame => 'Retour à la partie';
 }

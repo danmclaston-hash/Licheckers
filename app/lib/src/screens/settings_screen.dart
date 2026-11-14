@@ -148,6 +148,13 @@ class SettingsScreen extends ConsumerWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
+            title: Text(l.sounds),
+            subtitle: Text(l.soundsSub),
+            value: s.sound,
+            onChanged: (v) => set((x) => x.copyWith(sound: v)),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text(l.showLegal),
             subtitle: Text(l.showLegalSub),
             value: s.showLegalMoves,

@@ -24,6 +24,12 @@ class AppSettings {
   /// null = follow the phone's language.
   final String? locale;
 
+  /// Sounds and vibration for moves, captures, kings, low time, game end.
+  final bool sound;
+
+  /// The variant last played from the home screen (remembered).
+  final String variant;
+
   const AppSettings({
     this.themeMode = ThemeMode.system,
     this.boardTheme = 'walnut',
@@ -34,6 +40,8 @@ class AppSettings {
     this.showInfo = true,
     this.textScale = 1.0,
     this.locale,
+    this.sound = true,
+    this.variant = 'english',
   });
 
   AppSettings copyWith({
@@ -46,6 +54,8 @@ class AppSettings {
     bool? showInfo,
     double? textScale,
     String? Function()? locale,
+    bool? sound,
+    String? variant,
   }) =>
       AppSettings(
         themeMode: themeMode ?? this.themeMode,
@@ -57,6 +67,8 @@ class AppSettings {
         showInfo: showInfo ?? this.showInfo,
         textScale: textScale ?? this.textScale,
         locale: locale != null ? locale() : this.locale,
+        sound: sound ?? this.sound,
+        variant: variant ?? this.variant,
       );
 
   Map<String, dynamic> toJson() => {
@@ -69,6 +81,8 @@ class AppSettings {
         'showInfo': showInfo,
         'textScale': textScale,
         'locale': locale,
+        'sound': sound,
+        'variant': variant,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
@@ -85,6 +99,8 @@ class AppSettings {
       showInfo: j['showInfo'] as bool? ?? d.showInfo,
       textScale: (j['textScale'] as num?)?.toDouble() ?? d.textScale,
       locale: j['locale'] as String?,
+      sound: j['sound'] as bool? ?? d.sound,
+      variant: j['variant'] as String? ?? d.variant,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 
 void main() {
   jobRoundTrip();
+  clockCap();
   test('takes two pieces instead of one when it has the choice (English)', () {
     final p = Position.fromRows(Variants.english, [
       '.b......', '........', '.....b..', '........',
@@ -69,5 +70,17 @@ void jobRoundTrip() {
           pickBotMove(g.position, bots[3], history: g.seenKeys.toList(), seed: 7);
       expect(m.sameAs(direct), isTrue, reason: v.id);
     }
+  });
+}
+
+void clockCap() {
+  test('a bot on a clock thinks no longer than its time cap', () {
+    final g = Game(Variants.international);
+    final sw = Stopwatch()..start();
+    final text = runBotJob(encodeBotJob(g, 'international', 18, 3, capMs: 200));
+    sw.stop();
+    expect(g.legal.any((m) => m.sameAs(decodeBotMove(g, text))), isTrue);
+    // 200 ms cap plus some slack for a slow test machine.
+    expect(sw.elapsedMilliseconds, lessThan(1500));
   });
 }

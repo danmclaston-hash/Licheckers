@@ -1244,4 +1244,56 @@ class LLg extends L {
 
   @override
   String get youWouldEnd => 'Wandisigazza';
+
+  @override
+  String get quickEasy => 'Kyangu';
+
+  @override
+  String get quickMedium => 'Wakati';
+
+  @override
+  String get quickHard => 'Kizibu';
+
+  @override
+  String get twoPlayersSub => 'essimu emu';
+
+  @override
+  String get customTile => 'Londa wekka';
+
+  @override
+  String get customSub => 'by\'olonze';
+
+  @override
+  String get customTitle => 'Omuzannyo gw\'olonze';
+
+  @override
+  String get chooseVariant => 'Londa omuzannyo';
+
+  @override
+  String get nextTournament => 'Empaka eziddako';
+
+  @override
+  String get noClock => 'Tewali ssaawa';
+
+  @override
+  String get reasonTimeout => 'obudde buweddeko';
+
+  @override
+  String get newGame => 'Omuzannyo omupya';
+
+  @override
+  String get sounds => 'Amaloboozi n\'okukankana';
+
+  @override
+  String get soundsSub =>
+      'Okutambula, okulya, bakabaka, obudde obutono n\'enkomerero';
+
+  @override
+  String get prevMove => 'Okutambula okwasooka';
+
+  @override
+  String get nextMove => 'Okutambula okuddako';
+
+  @override
+  String get backToGame => 'Ddayo ku muzannyo';
 }

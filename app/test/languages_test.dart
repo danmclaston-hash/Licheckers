@@ -38,11 +38,33 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'Play screen');
       final l = lookupL(Locale(code));
       expect(find.text(l.navPlay), findsWidgets);
-      expect(find.text(l.opponent), findsOneWidget);
+      expect(find.text(l.quickEasy), findsOneWidget);
 
       // Arabic must read right-to-left.
-      final dir = Directionality.of(tester.element(find.text(l.opponent)));
+      final dir = Directionality.of(tester.element(find.text(l.quickEasy)));
       expect(dir, code == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+
+      // A two-player game with a 5+3 clock: board, clocks and move strip.
+      await tester.tap(find.text('5+3'));
+      await tester.pumpAndSettle();
+      expect(find.text('5:00'), findsNWidgets(2));
+      expect(find.text(l.noMovesYet), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'game screen');
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await tester.pumpAndSettle();
+
+      // Custom game page: every choice by hand, including the clock.
+      await tester.tap(find.text(l.customTile));
+      await tester.pumpAndSettle();
+      expect(find.text(l.customTitle), findsOneWidget);
+      expect(find.text(l.opponent), findsOneWidget);
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(find.byType(Scrollable).last, const Offset(0, -400));
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull, reason: 'custom page');
+      }
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await tester.pumpAndSettle();
 
       for (var tab = 1; tab < 4; tab++) {
         await tester.tap(find.byType(NavigationDestination).at(tab));
