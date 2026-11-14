@@ -9,3 +9,4 @@ google-services.json
 GoogleService-Info.plist
 app/web/bot_worker.js
 app/web/bot_worker.js.*
+tools/**/__pycache__/

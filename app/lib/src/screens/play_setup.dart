@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game_controller.dart';
 import '../info_tip.dart';
-import '../rules_text.dart';
+import '../i18n.dart';
 import 'game_screen.dart';
 import 'home.dart';
 
@@ -33,43 +33,41 @@ class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final l = context.l;
     final bot = bots[_level - 1];
-    return PageBody(title: 'Play', children: [
+    return PageBody(title: l.navPlay, children: [
       SectionCard(
-        title: 'Game',
-        trailing: const InfoTip(
-          title: 'Variants',
-          text: 'Checkers is played with different rules around the world. '
-              'Pick one here. Open Learn to read the rules of each game.',
-        ),
+        title: l.sectionGame,
+        trailing: InfoTip(title: l.variantsInfoTitle, text: l.variantsInfoText),
         child: Wrap(spacing: 8, runSpacing: 8, children: [
           for (final v in Variants.all)
             ChoiceChip(
-              label: Text(v.name),
+              label: Text(variantName(l, v.id)),
               selected: v == _variant,
               onSelected: (_) => setState(() => _variant = v),
             ),
         ]),
       ),
       Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 12),
-        child: Text(tagline(_variant),
+        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 12),
+        child: Text(tagline(l, _variant),
             style: t.textTheme.bodySmall
                 ?.copyWith(color: t.colorScheme.onSurfaceVariant)),
       ),
       SectionCard(
-        title: 'Opponent',
+        title: l.opponent,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SegmentedButton<bool>(
-            segments: const [
+            showSelectedIcon: false,
+            segments: [
               ButtonSegment(
                   value: true,
-                  icon: Icon(Icons.smart_toy_outlined),
-                  label: Text('Computer')),
+                  icon: const Icon(Icons.smart_toy_outlined),
+                  label: Text(l.computer)),
               ButtonSegment(
                   value: false,
-                  icon: Icon(Icons.people_outline),
-                  label: Text('Two players')),
+                  icon: const Icon(Icons.people_outline),
+                  label: Text(l.twoPlayers)),
             ],
             selected: {_vsBot},
             onSelectionChanged: (s) => setState(() => _vsBot = s.first),
@@ -90,39 +88,50 @@ class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
                       Text(bot.name,
                           style: t.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600)),
-                      Text(bot.description, style: t.textTheme.bodySmall),
+                      Text(botDescription(l, bot.level), style: t.textTheme.bodySmall),
                     ]),
               ),
-              const InfoTip(
-                title: 'Bot levels',
-                text: 'There are 18 computer players. Level 1 plays almost '
-                    'at random. Higher levels look more moves ahead and make '
-                    'fewer mistakes. The top levels think for a few seconds.',
+              InfoTip(title: l.botLevelsTitle, text: l.botLevelsText),
+            ]),
+            // 18 stops are hard to hit on a small slider, so - and + buttons
+            // step one level at a time.
+            Row(children: [
+              IconButton(
+                tooltip: l.levelN(_level - 1),
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: _level > 1 ? () => setState(() => _level--) : null,
+              ),
+              Expanded(
+                child: Slider(
+                  value: _level.toDouble(),
+                  min: 1,
+                  max: 18,
+                  divisions: 17,
+                  label: l.levelN(_level),
+                  onChanged: (v) => setState(() => _level = v.round()),
+                ),
+              ),
+              IconButton(
+                tooltip: l.levelN(_level + 1),
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: _level < 18 ? () => setState(() => _level++) : null,
               ),
             ]),
-            Slider(
-              value: _level.toDouble(),
-              min: 1,
-              max: 18,
-              divisions: 17,
-              label: 'Level $_level',
-              onChanged: (v) => setState(() => _level = v.round()),
-            ),
           ] else
             Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Text('Pass the device after each move.',
+              child: Text(l.passDevice,
                   style: t.textTheme.bodySmall),
             ),
         ]),
       ),
       if (_vsBot)
         SectionCard(
-          title: 'Your colour',
+          title: l.yourColour,
           child: SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: white, label: Text('White')),
-              ButtonSegment(value: black, label: Text('Black')),
+            segments: [
+              ButtonSegment(value: white, label: Text(l.white)),
+              ButtonSegment(value: black, label: Text(l.black)),
             ],
             selected: {_side},
             onSelectionChanged: (s) => setState(() => _side = s.first),
@@ -132,7 +141,7 @@ class _PlaySetupState extends ConsumerState<PlaySetupScreen> {
       FilledButton.icon(
         onPressed: _start,
         icon: const Icon(Icons.play_arrow),
-        label: const Text('Start game'),
+        label: Text(l.startGame),
       ),
     ]);
   }

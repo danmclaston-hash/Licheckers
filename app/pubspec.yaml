@@ -1,5 +1,5 @@
 name: licheckers
-description: "A new Flutter project."
+description: "Licheckers: checkers in 9 variants, with strong bots, lessons and tournaments."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -43,6 +43,9 @@ dependencies:
     path: ../packages/checkers_engine
   file_picker: ^13.3.3
   http: ^1.6.0
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +64,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -69,6 +73,9 @@ flutter:
 
   assets:
     - assets/icon/licheckers.svg
+    - assets/icon-64.png
+    # Arabic font: loaded only when Arabic is chosen (see lib/src/fonts.dart).
+    - assets/fonts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

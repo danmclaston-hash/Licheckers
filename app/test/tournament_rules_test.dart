@@ -84,8 +84,8 @@ void main() {
   test('labels: short, readable, never too long', () {
     final p = pieceStyleById('flat');
     expect(labelProblem('MTN', p.whiteA, p.whiteB), isNull);
-    expect(labelProblem('TOOLONGNAME', p.whiteA, p.whiteB), isNotNull);
-    expect(labelProblem('  ', p.whiteA, p.whiteB), isNotNull);
+    expect(labelProblem('TOOLONGNAME', p.whiteA, p.whiteB), LabelIssue.tooLong);
+    expect(labelProblem('  ', p.whiteA, p.whiteB), LabelIssue.empty);
   });
 
   group('draft validation', () {
@@ -100,32 +100,32 @@ void main() {
     });
     test('cannot start in 10 minutes', () {
       final d = good()..start = now.add(const Duration(minutes: 10));
-      expect(d.problems(now: now).any((s) => s.contains('30 minutes')), isTrue);
+      expect(d.problems(now: now).any((p) => p.code == ProblemCode.startSoon), isTrue);
     });
     test('sponsored tournaments need 6 hours lead time', () {
       final d = good()
         ..sponsor = SponsorMode.single
         ..sponsorA = 'Acme'
         ..start = now.add(const Duration(hours: 2));
-      expect(d.problems(now: now).any((s) => s.contains('6 hours')), isTrue);
+      expect(d.problems(now: now).any((p) => p.code == ProblemCode.sponsoredStartSoon), isTrue);
       d.start = now.add(const Duration(hours: 7));
       expect(d.problems(now: now), isEmpty);
     });
     test('never longer than 4 hours', () {
       final d = good()..durationMin = 300;
-      expect(d.problems(now: now).any((s) => s.contains('4 hours')), isTrue);
+      expect(d.problems(now: now).any((p) => p.code == ProblemCode.lengthRange), isTrue);
     });
     test('clock must stay inside its type range', () {
       final d = good()
         ..clock = ClockType.bullet
         ..baseMin = 5;
-      expect(d.problems(now: now).any((s) => s.contains('range')), isTrue);
+      expect(d.problems(now: now).any((p) => p.code == ProblemCode.clockRange), isTrue);
     });
     test('swiss rounds must fit', () {
       final d = good()
         ..format = TFormat.swiss
         ..rounds = 20;
-      expect(d.problems(now: now).any((s) => s.contains('rounds')), isTrue);
+      expect(d.problems(now: now).any((p) => p.code == ProblemCode.swissTooMany), isTrue);
       d.rounds = 5;
       expect(d.problems(now: now), isEmpty);
     });

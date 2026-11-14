@@ -1,46 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Checkers in 9 variants: strong bots, lessons and tournaments. Works offline.">
+  <meta name="theme-color" content="#1F2430">
 
-  <!-- iOS meta tags & icons -->
+  <!-- iPhone / iPad: install to Home Screen -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="licheckers">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Licheckers">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>licheckers</title>
+  <title>Licheckers</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Shown while the app loads, so a slow phone never sees a blank page. */
+    html, body { margin: 0; height: 100%; background: #1F2430; }
+    #splash { position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      font: 600 16px system-ui, sans-serif; color: #F4F2EE; transition: opacity .25s; }
+    #splash img { width: 96px; height: 96px; }
+    #splash .bar { width: 120px; height: 4px; border-radius: 2px; background: #2A2F35; overflow: hidden; }
+    #splash .bar::after { content: ""; display: block; width: 40%; height: 100%;
+      background: #8FBF5A; animation: slide 1s ease-in-out infinite; }
+    @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) { #splash .bar::after { animation: none; width: 100%; } }
+  </style>
+
+  <script>
+    // ---- Install support (read by the app; the app decides WHEN to ask) ----
+    // The browser offers an "install" event; we keep it instead of letting
+    // the browser show its own pop-up, so the app can ask politely later.
+    window.__lichInstall = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      window.__lichInstall = e;
+    });
+    window.addEventListener('appinstalled', function () {
+      window.__lichInstall = null;
+      try { localStorage.setItem('lich.installed', '1'); } catch (_) {}
+    });
+    window.lichCanInstall = function () { return window.__lichInstall != null; };
+    window.lichInstall = function () {
+      var e = window.__lichInstall;
+      if (!e) return Promise.resolve('unavailable');
+      window.__lichInstall = null;
+      e.prompt();
+      return e.userChoice.then(function (c) { return c.outcome; });
+    };
+    window.lichIsInstalled = function () {
+      var standalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+      var flag = false;
+      try { flag = localStorage.getItem('lich.installed') === '1'; } catch (_) {}
+      return standalone || flag;
+    };
+    // iPhone/iPad Safari has no install event: people add it from the Share menu.
+    window.lichIsIos = function () {
+      var ua = navigator.userAgent;
+      var ios = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && navigator.maxTouchPoints > 1);
+      return ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    };
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="splash" aria-label="Loading Licheckers">
+    <img src="icons/Icon-192.png" alt="">
+    <div>Licheckers</div>
+    <div class="bar"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('splash');
+      if (!s) return;
+      s.style.opacity = '0';
+      setTimeout(function () { s.remove(); }, 300);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:licheckers/main.dart';
 import 'package:licheckers/src/game_controller.dart';
 import 'package:licheckers/src/info_tip.dart';
-import 'package:licheckers/src/rules_text.dart';
+import 'package:licheckers/l10n/app_localizations.dart';
+import 'package:licheckers/src/i18n.dart' as i18n;
 import 'package:licheckers/src/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,10 +71,16 @@ void main() {
     expect(c.result, GameResult.whiteWins);
   });
 
-  test('rules text exists for every variant', () {
-    for (final v in Variants.all) {
-      expect(describeRules(v).length, greaterThan(8));
-      expect(tagline(v), isNotEmpty);
+  test('rules text exists for every variant in every language', () {
+    for (final code in i18n.supportedCodes) {
+      final l = lookupL(Locale(code));
+      for (final v in Variants.all) {
+        final lines = i18n.describeRules(l, v);
+        expect(lines.length, greaterThan(8), reason: '$code ${v.id}');
+        expect(lines.every((s) => s.trim().isNotEmpty), isTrue);
+        expect(i18n.tagline(l, v), isNotEmpty);
+        expect(i18n.variantName(l, v.id), isNot(v.id), reason: '$code ${v.id}');
+      }
     }
   });
 }

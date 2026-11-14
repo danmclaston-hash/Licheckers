@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../board_view.dart';
-import '../rules_text.dart';
+import '../i18n.dart';
 import '../settings.dart';
 import '../theme.dart';
 import 'home.dart';
@@ -13,16 +13,25 @@ class LearnScreen extends StatelessWidget {
   const LearnScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => PageBody(title: 'Learn', children: [
+  Widget build(BuildContext context) =>
+      PageBody(title: context.l.navLearn, children: const [VariantList()]);
+}
+
+/// The 9 variants; tap one to read its rules. Used in Learn and in Settings.
+class VariantList extends StatelessWidget {
+  const VariantList({super.key});
+
+  @override
+  Widget build(BuildContext context) => Column(children: [
         for (final v in Variants.all)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Card(
               clipBehavior: Clip.antiAlias,
               child: ListTile(
-                title: Text(v.name,
+                title: Text(variantName(context.l, v.id),
                     style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(tagline(v)),
+                subtitle: Text(tagline(context.l, v)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                     builder: (_) => VariantRulesScreen(rules: v))),
@@ -40,9 +49,10 @@ class VariantRulesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final t = Theme.of(context);
+    final l = context.l;
     return Scaffold(
-      appBar: AppBar(title: Text(rules.name)),
-      body: PageBody(title: 'How to play', children: [
+      appBar: AppBar(title: Text(variantName(l, rules.id))),
+      body: PageBody(title: l.howToPlay, children: [
         Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 340),
@@ -55,7 +65,7 @@ class VariantRulesScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 20),
-        for (final (i, line) in describeRules(rules).indexed)
+        for (final (i, line) in describeRules(l, rules).indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

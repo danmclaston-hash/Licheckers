@@ -1,8 +1,8 @@
-import 'package:checkers_core/checkers_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../i18n.dart';
 import '../info_tip.dart';
 import '../screens/home.dart';
 import 'tournament_rules.dart';
@@ -37,16 +37,15 @@ class _Body extends ConsumerWidget {
   const _Body({required this.x, required this.justCreated});
 
   Future<void> _join(BuildContext context, WidgetRef ref) async {
+    final l = context.l;
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(x.d.feeUgx == 0 ? 'Join for free?' : 'Join for ${ugx(x.d.feeUgx)}?'),
-        content: const Text(
-            'If the tournament is cancelled before it starts, you get your entry fee back.\n\n'
-            'Demo: no real money moves yet.'),
+        title: Text(x.d.feeUgx == 0 ? l.joinForFreeQ : l.joinForQ(ugx(x.d.feeUgx))),
+        content: Text('${l.refundNote}\n\n${l.demoNoMoney}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Back')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Join')),
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l.back)),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l.join)),
         ],
       ),
     );
@@ -56,6 +55,7 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
+    final l = context.l;
     final d = x.d;
     final half = d.sponsor == SponsorMode.half;
     final sponsored = d.sponsor != SponsorMode.none;
@@ -75,13 +75,12 @@ class _Body extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Card(
                   color: Colors.green.withValues(alpha: .15),
-                  child: const Padding(
-                    padding: EdgeInsets.all(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
                     child: Row(children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 10),
-                      Expanded(
-                          child: Text('Tournament created. Share the link below so people can join.')),
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(l.created)),
                     ]),
                   ),
                 ),
@@ -92,26 +91,26 @@ class _Body extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: half
                     ? Row(children: [
-                        Expanded(child: SponsorStrip('Presented by ${d.sponsorA}', cA, logo: d.logoA)),
+                        Expanded(child: SponsorStrip(l.presentedBy(d.sponsorA), cA, logo: d.logoA)),
                         const SizedBox(width: 6),
-                        Expanded(child: SponsorStrip('Presented by ${d.sponsorB}', cB, logo: d.logoB)),
+                        Expanded(child: SponsorStrip(l.presentedBy(d.sponsorB), cB, logo: d.logoB)),
                       ])
-                    : SponsorStrip('Presented by ${d.sponsorA}', cA, logo: d.logoA),
+                    : SponsorStrip(l.presentedBy(d.sponsorA), cA, logo: d.logoA),
               ),
 
             if (x.mine && d.logosWaitingForCheck)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: Tag('Logo waiting for safety check: only you can see it',
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Tag(l.logoPending,
                     icon: Icons.hourglass_top, colour: Colors.orange),
               ),
             // Countdown + join
             SectionCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Wrap(spacing: 6, runSpacing: 6, children: [
-                  Tag(clockText(d), icon: Icons.timer_outlined),
-                  Tag(d.format == TFormat.arena ? 'Arena' : 'Swiss', icon: Icons.groups_outlined),
-                  Tag(Variants.byId(d.variantId).name, icon: Icons.grid_on),
+                  Tag(clockText(l, d), icon: Icons.timer_outlined),
+                  Tag(formatName(l, d.format), icon: Icons.groups_outlined),
+                  Tag(variantName(l, d.variantId), icon: Icons.grid_on),
                 ]),
                 const SizedBox(height: 12),
                 Countdown(
@@ -120,17 +119,17 @@ class _Body extends ConsumerWidget {
                   style: t.textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w800, color: t.colorScheme.primary),
                 ),
-                Text('${dayTime(d.start)} to ${dayTime(d.end)}  (${hoursText(d.durationMin)})',
+                Text(l.fromTo(dayTime(context, d.start), dayTime(context, d.end), duration(l, d.durationMin)),
                     style: t.textTheme.bodySmall),
                 const SizedBox(height: 12),
                 if (x.iJoined)
-                  const Tag("You're in", icon: Icons.check, colour: Colors.green)
+                  Tag(l.youreIn, icon: Icons.check, colour: Colors.green)
                 else
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => _join(context, ref),
-                      child: Text(d.feeUgx == 0 ? 'Join for free' : 'Join for ${ugx(d.feeUgx)}'),
+                      child: Text(d.feeUgx == 0 ? l.joinForFree : l.joinFor(ugx(d.feeUgx))),
                     ),
                   ),
               ]),
@@ -138,13 +137,8 @@ class _Body extends ConsumerWidget {
 
             // Share link
             SectionCard(
-              title: 'Invite people',
-              trailing: const InfoTip(
-                title: 'Share link',
-                text: 'Send this link on WhatsApp or anywhere. People who already have the app '
-                    'open this tournament. New people are asked to sign up first, then join.\n\n'
-                    'The link starts working when online play is live.',
-              ),
+              title: l.invitePeople,
+              trailing: InfoTip(title: l.shareLinkTitle, text: l.shareLinkInfo),
               child: Row(children: [
                 Expanded(
                   child: Container(
@@ -152,18 +146,20 @@ class _Body extends ConsumerWidget {
                     decoration: BoxDecoration(
                         color: t.colorScheme.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(8)),
+                    // A web address always reads left to right.
                     child: Text(x.shareLink,
+                        textDirection: TextDirection.ltr,
                         style: const TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton.filledTonal(
-                  tooltip: 'Copy link',
+                  tooltip: l.copyLink,
                   icon: const Icon(Icons.copy),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: x.shareLink));
                     ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('Link copied')));
+                        .showSnackBar(SnackBar(content: Text(l.linkCopied)));
                   },
                 ),
               ]),
@@ -171,73 +167,59 @@ class _Body extends ConsumerWidget {
 
             // Prizes
             SectionCard(
-              title: 'Prizes',
+              title: l.prizes,
               child: Column(children: [
                 for (var i = 0; i < prizes.length; i++)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3),
                     child: Row(children: [
-                      Expanded(child: Text(ordinal(i + 1))),
+                      Expanded(child: Text(placeLabel(l, i + 1))),
                       Text(ugx(prizes[i]), style: const TextStyle(fontWeight: FontWeight.w700)),
                     ]),
                   ),
                 const Divider(),
                 Row(children: [
-                  const Expanded(child: Text('Entry fee')),
-                  Text(d.feeUgx == 0 ? 'Free' : ugx(d.feeUgx)),
+                  Expanded(child: Text(l.entryFee)),
+                  Text(d.feeUgx == 0 ? l.free : ugx(d.feeUgx)),
                 ]),
                 Row(children: [
-                  const Expanded(child: Text('Players')),
-                  Text('${x.joined} joined (min ${d.minPlayers}, max ${d.maxPlayers})'),
+                  Expanded(child: Text(l.players)),
+                  Flexible(child: Text(l.joinedCount(x.joined, d.minPlayers, d.maxPlayers), textAlign: TextAlign.end)),
                 ]),
               ]),
             ),
 
             // How it is played
             SectionCard(
-              title: 'How it works',
-              trailing: const InfoTip(
-                title: 'Points and ties',
-                text: 'Win 3 points, draw 1, loss 0. If players have the same points, '
-                    'more wins ranks higher, then the head-to-head result, then the strength of '
-                    'opponents, then fewer games, then who reached the score first. '
-                    'So there is always only one first place.',
-              ),
+              title: l.howItWorks,
+              trailing: InfoTip(title: l.pointsTitle, text: l.pointsInfo),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(d.format == TFormat.arena
-                    ? 'Arena: join any time. Play as many games as you can. Most points when the clock ends wins.'
-                    : 'Swiss: ${d.rounds} rounds. Each round you meet someone with a similar score. Join before round 1.'),
+                Text(d.format == TFormat.arena ? l.arenaShort : l.swissShort(d.rounds)),
                 const SizedBox(height: 6),
-                const Text('Win = 3 points · Draw = 1 · Loss = 0'),
+                Text(l.pointsLine),
                 const SizedBox(height: 6),
-                Text(d.voiceAllowed
-                    ? 'Voice chat is allowed (opt-in for both players).'
-                    : 'Voice chat is off in this tournament.'),
+                Text(d.voiceAllowed ? l.voiceOn : l.voiceOff),
                 Text(d.spectatorDelaySec == 0
-                    ? 'Live watching: no delay.'
-                    : 'Live watching is ${d.spectatorDelaySec} seconds late.'),
+                    ? l.watchNoDelay
+                    : l.watchDelayed(d.spectatorDelaySec)),
               ]),
             ),
 
             // The board players will see
             SectionCard(
-              title: 'The board you will play on',
-              trailing: const InfoTip(
-                title: 'Same board for everyone',
-                text: 'Everyone in this tournament sees this board and these pieces, '
-                    'so the game is always clear. Your own board choice returns when you leave.',
-              ),
+              title: l.boardYouPlay,
+              trailing: InfoTip(title: l.sameBoardTitle, text: l.sameBoardInfo),
               child: Center(child: BoardPreview(d, size: 260)),
             ),
 
             if (x.mine)
               SectionCard(
-                title: 'Your money (host)',
+                title: l.yourMoney,
                 child: Column(children: [
-                  _row('Entry fees so far', ugx(m.collected)),
-                  _row('Prize pool locked', ugx(d.poolUgx)),
-                  _row('Platform share ($platformCutPercent% of profit)', ugx(m.platformCut)),
-                  _row('You would end with', ugx(m.hostResult)),
+                  _row(l.feesSoFar, ugx(m.collected)),
+                  _row(l.poolLocked, ugx(d.poolUgx)),
+                  _row(l.platformShare(platformCutPercent), ugx(m.platformCut)),
+                  _row(l.youWouldEnd, ugx(m.hostResult)),
                 ]),
               ),
           ]),

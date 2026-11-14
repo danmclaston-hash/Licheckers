@@ -17,9 +17,9 @@ void main() {
   test('file checks: type and size', () {
     expect(logoFileProblem('logo.png', 1000), isNull);
     expect(logoFileProblem('logo.JPG', 1000), isNull);
-    expect(logoFileProblem('logo.svg', 1000), contains('SVG'));
+    expect(logoFileProblem('logo.svg', 1000), LogoIssue.svg);
     expect(logoFileProblem('logo.exe', 1000), isNotNull);
-    expect(logoFileProblem('big.png', 3 * 1024 * 1024), contains('2 MB'));
+    expect(logoFileProblem('big.png', 3 * 1024 * 1024), LogoIssue.big);
     expect(logoFileProblem('empty.png', 0), isNotNull);
   });
 

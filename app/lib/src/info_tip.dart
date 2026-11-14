@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'i18n.dart';
 import 'settings.dart';
 
 /// The small (i) button. Tap it to read a short explanation.
@@ -17,7 +18,7 @@ class InfoTip extends ConsumerWidget {
     }
     return IconButton(
       icon: const Icon(Icons.info_outline, size: 18),
-      tooltip: 'What is this?',
+      tooltip: context.l.infoTooltip,
       visualDensity: VisualDensity.compact,
       color: Theme.of(context).colorScheme.onSurfaceVariant,
       onPressed: () => showDialog<void>(
@@ -27,7 +28,7 @@ class InfoTip extends ConsumerWidget {
           content: Text(text),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(c), child: const Text('Got it')),
+                onPressed: () => Navigator.pop(c), child: Text(context.l.gotIt)),
           ],
         ),
       ),
