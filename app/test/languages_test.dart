@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:licheckers/l10n/app_localizations.dart';
 import 'package:licheckers/main.dart';
+import 'package:licheckers/src/fonts.dart';
 import 'package:licheckers/src/i18n.dart';
 import 'package:licheckers/src/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +31,8 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
 
+      // Load any extra font (Arabic) first, so it cannot finish late.
+      await tester.runAsync(() => ensureFontsFor(code));
       await tester.pumpWidget(await appIn(code));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'Play screen');
